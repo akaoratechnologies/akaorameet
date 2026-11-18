@@ -1,11 +1,11 @@
 {
   "name": "Akaora Meet",
   "short_name": "Akaora Meet",
-  "description": "Simple, secure and instant browser meetings by Akaora.",
+  "description": "Akaora Meet \u2014 premium video meetings with screen sharing, live chat, and host controls.",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#f6f8fb",
-  "theme_color": "#06162a",
+  "background_color": "#101114",
+  "theme_color": "#202127",
   "icons": [
     {
       "src": "assets/logo.png",

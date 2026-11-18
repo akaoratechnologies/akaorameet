@@ -12,6 +12,9 @@ const ui = {
   openCreateBtn: $("openCreateBtn"),
   openJoinBtn: $("openJoinBtn"),
   createNameInput: $("createNameInput"),
+  createErrorAlert: $("createErrorAlert"),
+  createErrorTitle: $("createErrorTitle"),
+  createErrorText: $("createErrorText"),
   createNowBtn: $("createNowBtn"),
   generatedRoomCode: $("generatedRoomCode"),
   regenerateCodeBtn: $("regenerateCodeBtn"),
@@ -20,6 +23,7 @@ const ui = {
   joinNameInput: $("joinNameInput"),
   roomCodeInput: $("roomCodeInput"),
   joinNowBtn: $("joinNowBtn"),
+  cancelJoinRequestBtn: $("cancelJoinRequestBtn"),
   invalidRoomAlert: $("invalidRoomAlert"),
   joinMicToggle: $("joinMicToggle"),
   joinCameraToggle: $("joinCameraToggle"),
@@ -44,6 +48,8 @@ const ui = {
   micDeviceSelect: $("micDeviceSelect"),
   cameraDeviceSelect: $("cameraDeviceSelect"),
   refreshDevicesBtn: $("refreshDevicesBtn"),
+  reconnectMediaBtn: $("reconnectMediaBtn"),
+  resumeAudioBtn: $("resumeAudioBtn"),
   fullscreenStageBtn: $("fullscreenStageBtn"),
   callStage: $("callStage"),
   videoGrid: $("videoGrid"),
@@ -55,6 +61,7 @@ const ui = {
   localHandBadge: $("localHandBadge"),
   screenTile: $("screenTile"),
   screenVideo: $("screenVideo"),
+  screenAudio: $("screenAudio"),
   screenPinBtn: $("screenPinBtn"),
   pinButtons: [...document.querySelectorAll("[data-pin-tile]")],
   chatFullscreenBtn: $("chatFullscreenBtn"),
@@ -151,6 +158,7 @@ const state = {
   localScreenAudioTrack: null,
   localScreenStream: null,
   remoteScreenStream: new MediaStream(),
+  remoteScreenOwnerId: null,
   hasRemoteParticipant: false,
   remoteParticipant: null,
   participants: {},
@@ -161,6 +169,10 @@ const state = {
   pendingJoinRequests: [],
   activeJoinRequest: null,
   joinRequestId: null,
+  pendingAdmissionUnsubscribe: null,
+  pendingRoomWatchUnsubscribe: null,
+  createdRoomByThisSession: false,
+  firebaseConnected: false,
   waitingForAdmission: false,
   joiningAfterAdmit: false,
   endingLocally: false,
@@ -182,6 +194,7 @@ const state = {
   makingOffer: false,
   pendingOfferTimer: null,
   recoveryTimer: null,
+  mediaResumeNeeded: new Set(),
   lastHandledOfferSdp: "",
   listeners: [],
   chatKeys: new Set(),
@@ -247,6 +260,8 @@ function boot() {
   ui.invalidRoomAlert.hidden = true;
   bindEvents();
   createFreshCode();
+  // Keep invite-link navigation working even if Firebase is blocked or offline.
+  applyRoomFromUrl();
 
   try {
     if (!window.firebase) {
@@ -273,8 +288,9 @@ function boot() {
     toast(error.message || "Firebase initialization failed.", "error");
   }
 
+  updateCreateButtonState();
+  updateJoinButtonState();
   populateDeviceLists(false);
-  applyRoomFromUrl();
 }
 
 function bindEvents() {
@@ -293,6 +309,19 @@ function bindEvents() {
   ui.regenerateCodeBtn.addEventListener("click", createFreshCode);
   ui.createNowBtn.addEventListener("click", createMeetingNow);
   ui.joinNowBtn.addEventListener("click", joinMeetingNow);
+  ui.cancelJoinRequestBtn?.addEventListener("click", async () => {
+    await cancelPendingJoinRequest();
+    showView("join");
+    showJoinNotice("Request cancelled", "You can enter another room code or request again.");
+  });
+  ui.createNameInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !ui.createNowBtn.disabled) createMeetingNow();
+  });
+  [ui.joinNameInput, ui.roomCodeInput].forEach((field) => {
+    field?.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !ui.joinNowBtn.disabled) joinMeetingNow();
+    });
+  });
 
   bindToggle(ui.createMicToggle, "Mic");
   bindToggle(ui.createCameraToggle, "Camera");
@@ -327,6 +356,12 @@ function bindEvents() {
   ui.deviceBtn?.addEventListener("click", () => toggleDevicePanel(true));
   ui.closeDevicePanel?.addEventListener("click", () => toggleDevicePanel(false));
   ui.refreshDevicesBtn?.addEventListener("click", () => populateDeviceLists(true));
+  ui.reconnectMediaBtn?.addEventListener("click", () => {
+    toggleMorePanel(false);
+    requestMediaRenegotiation("Manual reconnect", { iceRestart: true });
+    toast("Restarting media connection...");
+  });
+  ui.resumeAudioBtn?.addEventListener("click", resumeRemotePlayback);
   ui.micDeviceSelect?.addEventListener("change", async () => {
     state.selectedAudioDeviceId = ui.micDeviceSelect.value;
     await switchAudioDevice();
@@ -362,11 +397,14 @@ function bindEvents() {
   ui.handBtn?.addEventListener("click", toggleRaiseHand);
   ui.emojiBtn.addEventListener("click", () => {
     ui.emojiRow.hidden = !ui.emojiRow.hidden;
+    ui.emojiBtn.setAttribute("aria-expanded", String(!ui.emojiRow.hidden));
   });
   ui.emojiRow.querySelectorAll("button").forEach((button) => {
     button.addEventListener("click", () => {
       ui.chatInput.value += button.textContent;
       ui.chatInput.focus();
+      ui.emojiRow.hidden = true;
+      ui.emojiBtn.setAttribute("aria-expanded", "false");
     });
   });
   ui.sendChatBtn.addEventListener("click", sendChatMessage);
@@ -399,9 +437,29 @@ function bindEvents() {
     if (!ui.reactionPanel?.hidden && !event.target.closest("#reactionPanel, #reactionBtn")) {
       toggleReactionPanel(false);
     }
-    if (ui.morePanel?.hidden) return;
-    if (event.target.closest("#morePanel, #moreBtn")) return;
-    toggleMorePanel(false);
+    if (!ui.emojiRow.hidden && !event.target.closest("#emojiRow, #emojiBtn")) {
+      ui.emojiRow.hidden = true;
+      ui.emojiBtn.setAttribute("aria-expanded", "false");
+    }
+    if (!ui.morePanel?.hidden && !event.target.closest("#morePanel, #moreBtn")) toggleMorePanel(false);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    if (!ui.meetingEndedModal?.hidden) closeFeedbackModal();
+    else if (!ui.devicePanel?.hidden) toggleDevicePanel(false);
+    else if (!ui.morePanel?.hidden) toggleMorePanel(false);
+    else if (!ui.participantsPanel?.hidden) toggleParticipantsPanel(false);
+    else if (!ui.notesPanel?.hidden) toggleNotesPanel(false);
+    else if (ui.chatDrawer.classList.contains("open")) ui.chatDrawer.classList.remove("open");
+    else if (!ui.reactionPanel?.hidden) toggleReactionPanel(false);
+    else if (!ui.emojiRow.hidden) {
+      ui.emojiRow.hidden = true;
+      ui.emojiBtn.setAttribute("aria-expanded", "false");
+    }
+  });
+  window.addEventListener("offline", () => setAppStatus("Offline — reconnect to continue", "error"));
+  window.addEventListener("online", () => {
+    if (state.db) setAppStatus("Network restored", "ready");
   });
 }
 
@@ -417,9 +475,10 @@ function bindToggle(button, label) {
 
 
 function initTheme() {
-  const savedTheme = localStorage.getItem("akaora-meet-theme");
+  let savedTheme = null;
+  try { savedTheme = localStorage.getItem("akaora-meet-theme"); } catch (_) {}
   const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-  setTheme(savedTheme || (prefersDark ? "dark" : "light"), false);
+  setTheme(savedTheme || "light", false);
 }
 
 function toggleTheme() {
@@ -430,10 +489,10 @@ function toggleTheme() {
 function setTheme(theme, announce = true) {
   const normalizedTheme = theme === "dark" ? "dark" : "light";
   document.body.dataset.theme = normalizedTheme;
-  localStorage.setItem("akaora-meet-theme", normalizedTheme);
+  try { localStorage.setItem("akaora-meet-theme", normalizedTheme); } catch (_) {}
 
   const metaTheme = document.querySelector('meta[name="theme-color"]');
-  if (metaTheme) metaTheme.setAttribute("content", normalizedTheme === "dark" ? "#061326" : "#f8fbff");
+  if (metaTheme) metaTheme.setAttribute("content", normalizedTheme === "dark" ? "#131a1d" : "#f8f7f3");
 
   const label = normalizedTheme === "dark" ? "Light" : "Dark";
   ui.themeToggles.forEach((button) => {
@@ -507,6 +566,7 @@ function showView(name) {
 
 function openCreateFlow() {
   ui.invalidRoomAlert.hidden = true;
+  if (ui.createErrorAlert) ui.createErrorAlert.hidden = true;
   createFreshCode();
   showView("create");
   setAppStatus("Ready to create meeting", "ready");
@@ -515,18 +575,20 @@ function openCreateFlow() {
 
 function openJoinFlow() {
   ui.invalidRoomAlert.hidden = true;
+  updateJoinButtonState();
   showView("join");
   setAppStatus("Ready to join meeting", "ready");
   setTimeout(() => (ui.roomCodeInput.value ? ui.joinNameInput.focus() : ui.roomCodeInput.focus()), 120);
 }
 
 function goHome() {
+  if (state.waitingForAdmission) cancelPendingJoinRequest();
   const url = new URL(window.location.href);
   url.searchParams.delete("room");
   history.replaceState({}, "", url.toString());
   ui.invalidRoomAlert.hidden = true;
   showView("home");
-  setAppStatus("Ready", "ready");
+  setAppStatus(state.db ? "Ready" : "Firebase unavailable", state.db ? "ready" : "error");
 }
 
 function updateCreateButtonState() {
@@ -536,7 +598,7 @@ function updateCreateButtonState() {
 function updateJoinButtonState() {
   const hasName = ui.joinNameInput.value.trim().length >= 2;
   const hasRoom = parseRoomId(ui.roomCodeInput.value).length >= 6;
-  ui.joinNowBtn.disabled = !state.db || !hasName || !hasRoom;
+  ui.joinNowBtn.disabled = !state.db || !hasName || !hasRoom || state.waitingForAdmission || state.joiningAfterAdmit;
 }
 
 function createFreshCode() {
@@ -561,14 +623,17 @@ async function createMeetingNow() {
   if (ui.createNameInput.value.trim().length < 2) return;
 
   ui.createNowBtn.disabled = true;
+  if (ui.createErrorAlert) ui.createErrorAlert.hidden = true;
   ui.createNowBtn.innerHTML = loadingIcon("Creating...");
   setAppStatus("Creating meeting...", "loading");
 
   state.role = "host";
+  state.endingLocally = false;
+  state.createdRoomByThisSession = false;
   state.roomId = state.generatedCode || makeRoomCode();
   state.displayName = ui.createNameInput.value.trim().slice(0, 32);
   state.hostName = state.displayName;
-  state.roomRef = state.db.ref(`rooms/${state.roomId}`);
+  state.roomRef = null;
   state.roomLocked = false;
   state.chatEnabled = true;
   state.guestScreenShareEnabled = true;
@@ -586,28 +651,44 @@ async function createMeetingNow() {
     await prepareInitialMedia(isToggleOn(ui.createMicToggle), isToggleOn(ui.createCameraToggle));
 
     setAppStatus("Saving room to Firebase...", "loading");
-    // Create the room path before WebRTC starts producing ICE candidates.
-    // This avoids early candidates being overwritten by a later roomRef.set().
-    await state.roomRef.set({
-      status: "creating",
-      createdAt: firebase.database.ServerValue.TIMESTAMP,
-      updatedAt: firebase.database.ServerValue.TIMESTAMP,
-      createdBy: state.peerId,
-      hostId: state.peerId,
-      hostName: state.displayName,
-      locked: false,
-      chatEnabled: true,
-      guestScreenShareEnabled: true,
-      settings: {
+    // An atomic transaction prevents a rare code collision from deleting or
+    // overwriting someone else's meeting (a plain .set() was unsafe here).
+    let roomCreated = false;
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const proposedCode = attempt ? makeRoomCode() : state.roomId;
+      const proposedRoomRef = state.db.ref(`rooms/${proposedCode}`);
+      const initialRoom = {
+        status: "creating",
+        createdAt: firebase.database.ServerValue.TIMESTAMP,
+        updatedAt: firebase.database.ServerValue.TIMESTAMP,
+        createdBy: state.peerId,
+        hostId: state.peerId,
+        hostName: state.displayName,
+        locked: false,
         chatEnabled: true,
         guestScreenShareEnabled: true,
-      },
-      participants: {
-        [state.peerId]: participantPayload("host"),
-      },
-      joinRequests: null,
-      peerConnections: null,
-    });
+        settings: { chatEnabled: true, guestScreenShareEnabled: true },
+        participants: { [state.peerId]: participantPayload("host") },
+        joinRequests: null,
+        peerConnections: null,
+      };
+      const transaction = await proposedRoomRef.transaction(
+        (existing) => existing === null ? initialRoom : undefined,
+        undefined,
+        false,
+      );
+      if (transaction.committed) {
+        state.roomId = proposedCode;
+        state.generatedCode = proposedCode;
+        ui.generatedRoomCode.textContent = proposedCode;
+        state.roomRef = proposedRoomRef;
+        state.createdRoomByThisSession = true;
+        roomCreated = true;
+        break;
+      }
+    }
+    if (!roomCreated) throw new Error("Unable to reserve a unique meeting code. Please try again.");
+    registerDisconnectCleanup();
 
     setAppStatus("Opening call screen...", "loading");
     enterMeetingScreen();
@@ -628,8 +709,7 @@ async function createMeetingNow() {
   } catch (error) {
     console.error(error);
     await safeCleanupAfterFailedStart();
-    setAppStatus("Failed • Could not create", "error");
-    toast(error.message || "Could not create meeting. Check Firebase rules.", "error");
+    reportMeetingConnectionError(error, "create");
     showView("create");
   } finally {
     ui.createNowBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Create Meeting Now`;
@@ -639,6 +719,7 @@ async function createMeetingNow() {
 
 async function joinMeetingNow() {
   if (!state.db) return toast("Firebase is not ready yet.", "error");
+  if (state.waitingForAdmission || state.joiningAfterAdmit) return;
   const room = parseRoomId(ui.roomCodeInput.value);
   if (!room || room.length < 6) return showInvalidRoom();
   if (ui.joinNameInput.value.trim().length < 2) return;
@@ -676,10 +757,8 @@ async function joinMeetingNow() {
     await requestToJoinRoom(roomRef);
   } catch (error) {
     console.error(error);
-    state.waitingForAdmission = false;
-    state.joiningAfterAdmit = false;
-    setAppStatus("Failed • Could not join", "error");
-    toast(error.message || "Could not join meeting. Check room code and Firebase rules.", "error");
+    await cancelPendingJoinRequest();
+    reportMeetingConnectionError(error, "join");
     showView("join");
   } finally {
     if (!state.joiningAfterAdmit && !state.waitingForAdmission && document.body.dataset.view !== "meeting") {
@@ -693,13 +772,26 @@ async function requestToJoinRoom(roomRef) {
   const requestRef = roomRef.child("joinRequests").push();
   state.joinRequestId = requestRef.key;
   state.waitingForAdmission = true;
+  if (ui.cancelJoinRequestBtn) ui.cancelJoinRequestBtn.hidden = false;
   await requestRef.set({
     peerId: state.peerId,
     name: state.displayName,
     status: "pending",
     createdAt: firebase.database.ServerValue.TIMESTAMP,
   });
-  requestRef.onDisconnect?.().remove?.();
+  requestRef.onDisconnect?.().remove?.().catch?.(console.warn);
+
+  const roomCallback = (snapshot) => {
+    if (!state.waitingForAdmission) return;
+    const liveRoom = snapshot.val();
+    if (!liveRoom || liveRoom.status === "ended") {
+      cancelPendingJoinRequest();
+      showJoinNotice("Meeting ended", "The host has closed this meeting.");
+      setAppStatus("Meeting ended", "error");
+    }
+  };
+  roomRef.on("value", roomCallback);
+  state.pendingRoomWatchUnsubscribe = () => roomRef.off("value", roomCallback);
 
   showJoinNotice("Waiting for host", "Your request was sent. You will enter when the host admits you.");
   setAppStatus("Waiting for host approval...", "loading");
@@ -707,47 +799,144 @@ async function requestToJoinRoom(roomRef) {
   ui.joinNowBtn.disabled = true;
 
   const callback = async (snapshot) => {
+    if (state.joinRequestId !== requestRef.key || state.roomRef !== roomRef) return;
     const request = snapshot.val();
     if (!request) return;
 
     if (request.status === "denied") {
-      state.waitingForAdmission = false;
-      requestRef.off("value", callback);
+      await cancelPendingJoinRequest();
       showJoinNotice("Request denied", "The host denied your request to join.");
       setAppStatus("Request denied", "error");
       toast("The host denied your request to join.", "error");
-      ui.joinNowBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/><path d="M3 12h12"/></svg>Join Meeting Now`;
-      updateJoinButtonState();
       return;
     }
 
     if (request.status !== "admitted" || state.joiningAfterAdmit) return;
     state.joiningAfterAdmit = true;
     state.waitingForAdmission = false;
-    requestRef.off("value", callback);
+    state.pendingAdmissionUnsubscribe?.();
+    state.pendingAdmissionUnsubscribe = null;
+    state.pendingRoomWatchUnsubscribe?.();
+    state.pendingRoomWatchUnsubscribe = null;
+    if (ui.cancelJoinRequestBtn) ui.cancelJoinRequestBtn.hidden = true;
     ui.joinNowBtn.innerHTML = loadingIcon("Joining...");
     setAppStatus("Admitted - joining...", "loading");
 
     try {
       const freshRoom = await roomRef.once("value");
       await completeGuestJoin(roomRef, freshRoom.val() || {});
-      await requestRef.update({
-        status: "joined",
-        joinedAt: firebase.database.ServerValue.TIMESTAMP,
-      }).catch(() => {});
+      await requestRef.remove().catch(() => {});
+      state.joinRequestId = null;
     } catch (error) {
       console.error(error);
+      await safeCleanupAfterFailedStart();
+      await cancelPendingJoinRequest();
       state.joiningAfterAdmit = false;
-      state.waitingForAdmission = false;
       setAppStatus("Failed - Could not join", "error");
       toast(error.message || "Could not join after admission.", "error");
       ui.joinNowBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/><path d="M3 12h12"/></svg>Join Meeting Now`;
+      showView("join");
       updateJoinButtonState();
     }
   };
 
   requestRef.on("value", callback);
-  state.listeners.push(() => requestRef.off("value", callback));
+  state.pendingAdmissionUnsubscribe = () => requestRef.off("value", callback);
+}
+
+async function cancelPendingJoinRequest() {
+  state.pendingAdmissionUnsubscribe?.();
+  state.pendingRoomWatchUnsubscribe?.();
+  state.pendingAdmissionUnsubscribe = null;
+  state.pendingRoomWatchUnsubscribe = null;
+  const requestId = state.joinRequestId;
+  const requestRoom = state.roomRef;
+  state.joinRequestId = null;
+  state.waitingForAdmission = false;
+  state.joiningAfterAdmit = false;
+  if (ui.cancelJoinRequestBtn) ui.cancelJoinRequestBtn.hidden = true;
+  if (document.body.dataset.view !== "meeting" && state.roomRef === requestRoom) {
+    state.roomRef = null;
+    state.roomId = null;
+    state.role = null;
+  }
+  if (requestId && requestRoom) {
+    await requestRoom.child(`joinRequests/${requestId}`).remove().catch(console.warn);
+  }
+  ui.joinNowBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/><path d="M3 12h12"/></svg>Join Meeting Now`;
+  updateJoinButtonState();
+}
+
+/**
+ * Presence must never end the whole room. Firebase onDisconnect operations fire
+ * during transient network interruptions as well as an actual tab close.
+ * Only explicit host actions (leave/end for everyone) end the room.
+ *
+ * Re-arm participant presence on EVERY Firebase reconnect: onDisconnect is
+ * single-use, and its previous removal may have run while the user was offline.
+ */
+function registerDisconnectCleanup() {
+  if (!state.roomRef || !state.db) return;
+  const roomRef = state.roomRef;
+  const participantRef = roomRef.child(`participants/${state.peerId}`);
+  const connectedRef = state.db.ref(".info/connected");
+  let everConnected = false;
+  let lostConnection = false;
+  let generation = 0;
+
+  const onConnected = (snapshot) => {
+    if (state.roomRef !== roomRef || state.endingLocally) return;
+    const connected = snapshot.val() === true;
+    state.firebaseConnected = connected;
+    if (!connected) {
+      if (everConnected) {
+        lostConnection = true;
+        generation += 1;
+        setAppStatus("Signaling reconnecting • Meeting remains open", "loading");
+      }
+      return;
+    }
+
+    const reconnecting = everConnected && lostConnection;
+    everConnected = true;
+    lostConnection = false;
+    const thisGeneration = ++generation;
+    (async () => {
+      try {
+        // Cancel any room-status disconnect action from an older code path on
+        // this Firebase connection. Never arm a new one.
+        await roomRef.child("status").onDisconnect().cancel();
+        await participantRef.onDisconnect().remove();
+        if (state.roomRef !== roomRef || state.endingLocally || thisGeneration !== generation) return;
+
+        if (reconnecting) {
+          const roomSnap = await roomRef.once("value");
+          if (!roomSnap.exists() || roomSnap.val()?.status === "ended") return;
+          const previous = await participantRef.once("value");
+          if (previous.val()?.removed) return; // Do not undo a host kick.
+          const payload = {
+            ...participantPayload(state.role),
+            joinedAt: previous.val()?.joinedAt || firebase.database.ServerValue.TIMESTAMP,
+          };
+          if (state.roomRef !== roomRef || state.endingLocally || thisGeneration !== generation) return;
+          await participantRef.set(payload);
+          setAppStatus("Signaling reconnected • Meeting still active", "connected");
+          for (const peer of state.peerConnections.values()) {
+            refreshMeshPeerConnection(peer, "Firebase signaling restored", { iceRestart: true });
+          }
+          toast("Connection restored. Meeting continued.");
+        }
+      } catch (error) {
+        console.warn("Could not restore Firebase presence", error);
+        if (state.roomRef === roomRef && !state.endingLocally) {
+          setAppStatus("Signaling connection needs attention", "error");
+        }
+      }
+    })();
+  };
+
+  connectedRef.on("value", onConnected);
+  state.listeners.push(() => connectedRef.off("value", onConnected));
 }
 
 async function completeGuestJoin(roomRef, data) {
@@ -775,6 +964,7 @@ async function completeGuestJoin(roomRef, data) {
   await prepareInitialMedia(isToggleOn(ui.joinMicToggle), isToggleOn(ui.joinCameraToggle));
   setAppStatus("Opening call screen...", "loading");
   enterMeetingScreen();
+  registerDisconnectCleanup();
   await state.roomRef.child(`participants/${state.peerId}`).set(participantPayload("guest"));
 
   listenForRoomState();
@@ -783,6 +973,45 @@ async function completeGuestJoin(roomRef, data) {
   setupFirebaseReactions();
   setAppStatus("Connected to room", "connected");
   toast("Joined meeting successfully.");
+}
+
+/** Firebase permission errors are unrelated to browser mic/camera permission. */
+function reportMeetingConnectionError(error, flow = "create") {
+  const code = String(error?.code || "").toLowerCase().replaceAll("-", "_");
+  const text = String(error?.message || "");
+  const forbidden = code.includes("permission_denied") || /permission[_ -]?denied|permission denied|insufficient permissions/i.test(text);
+  const disconnected = code.includes("disconnected") || /network error|offline|network request failed/i.test(text);
+  const title = forbidden ? "Firebase database access denied" : disconnected ? "Network connection unavailable" : "Could not connect to meeting";
+  const message = forbidden
+    ? "This is NOT a camera/microphone permission issue. Open Firebase Console → Realtime Database → Rules and publish database.rules.json. If App Check enforcement is enabled, configure it for localhost too."
+    : disconnected
+      ? "Check your internet connection. Firebase is required to create or join real meetings."
+      : "Firebase could not create or load this room. Check the browser Console and your Firebase configuration.";
+
+  setAppStatus(forbidden ? "Firebase access denied" : "Meeting connection failed", "error");
+  toast(forbidden ? "Firebase database blocked — see setup instructions below." : title, "error", 6500);
+  if (flow === "create") {
+    if (ui.createErrorTitle) ui.createErrorTitle.textContent = title;
+    if (ui.createErrorText) ui.createErrorText.textContent = message;
+    if (ui.createErrorAlert) ui.createErrorAlert.hidden = false;
+  } else {
+    showJoinNotice(title, message);
+  }
+}
+
+/** Explain real browser media failures without calling them Firebase errors. */
+function describeMediaError(error, kind) {
+  const name = String(error?.name || "");
+  if (!navigator.mediaDevices?.getUserMedia || !window.isSecureContext) {
+    return `${kind} requires http://localhost or HTTPS in a supported browser.`;
+  }
+  if (name === "NotAllowedError" || name === "PermissionDeniedError" || name === "SecurityError") {
+    return `${kind} blocked by browser or Windows privacy settings. Check site permissions and Windows Settings → Privacy & security.`;
+  }
+  if (name === "NotFoundError" || name === "DevicesNotFoundError") return `No working ${kind.toLowerCase()} detected. Check it is connected.`;
+  if (name === "NotReadableError" || name === "TrackStartError") return `${kind} is busy or unavailable. Close other apps using it and retry.`;
+  if (name === "OverconstrainedError") return `Selected ${kind.toLowerCase()} is unavailable. Choose another device.`;
+  return `${kind} could not start. Check browser settings or connected device.`;
 }
 
 function showInvalidRoom() {
@@ -815,22 +1044,33 @@ async function prepareInitialMedia(wantsAudio, wantsVideo) {
     return;
   }
 
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: wantsAudio ? audioConstraints() : false,
-      video: wantsVideo ? videoConstraints() : false,
-    });
-    stream.getTracks().forEach((track) => state.localStream.addTrack(track));
-    state.currentAudioTrack = stream.getAudioTracks()[0] || null;
-    state.currentVideoTrack = stream.getVideoTracks()[0] || null;
-    ui.localVideo.srcObject = state.localStream;
-  } catch (error) {
-    console.warn(error);
-    setAppStatus("Media blocked • continuing", "error");
-    toast("Camera/mic permission was blocked. Entering without media.", "error");
-  } finally {
-    updateLocalMediaUI();
-    populateDeviceLists(false);
+  // Request tracks independently: one unavailable device must not disable the other.
+  // Room creation remains possible even when media is disabled by the browser/OS.
+  const failures = [];
+  for (const request of [
+    { needed: wantsAudio, kind: "Microphone", constraints: () => ({ audio: audioConstraints(), video: false }) },
+    { needed: wantsVideo, kind: "Camera", constraints: () => ({ audio: false, video: videoConstraints() }) },
+  ]) {
+    if (!request.needed) continue;
+    try {
+      if (!navigator.mediaDevices?.getUserMedia) throw new DOMException("MediaDevices unavailable", "NotSupportedError");
+      const stream = await navigator.mediaDevices.getUserMedia(request.constraints());
+      const track = request.kind === "Microphone" ? stream.getAudioTracks()[0] : stream.getVideoTracks()[0];
+      if (!track) throw new DOMException("No media track returned", "NotFoundError");
+      state.localStream.addTrack(track);
+      if (request.kind === "Microphone") state.currentAudioTrack = track;
+      else state.currentVideoTrack = track;
+    } catch (error) {
+      console.warn(`${request.kind} unavailable`, error);
+      failures.push(describeMediaError(error, request.kind));
+    }
+  }
+  ui.localVideo.srcObject = state.localStream;
+  updateLocalMediaUI();
+  populateDeviceLists(false);
+  if (failures.length) {
+    setAppStatus("Media unavailable • continuing", "ready");
+    toast(failures.join(" "), "error", 6500);
   }
 }
 
@@ -1213,19 +1453,29 @@ function ensureMeshPeerConnection(remoteId, participant = {}) {
     connectionId,
     ref: connectionRef,
     pc,
-    stream: new MediaStream(),
+    stream: new MediaStream(), // camera + microphone only
+    screenStream: new MediaStream(), // screen video + optional tab/system audio
+    screenSharing: Boolean(participant.screenSharing),
     queuedCandidates: [],
     listeners: [],
     makingOffer: false,
     lastOfferSdp: "",
     lastAnswerSdp: "",
     handledOfferRequestKeys: new Set(),
+    pendingOffer: null,
+    recoveryTimer: null,
+    recoveryAttempts: 0,
+    processedCandidateKeys: new Set(),
+    lastAppliedOfferSdp: "",
   };
 
   state.peerConnections.set(remoteId, peer);
   state.remotePeers[remoteId] = peer;
   ensureRemotePeerTile(remoteId, peer.name);
-  createOfferTransceiversForPc(pc);
+  // Critical WebRTC fix: only the offerer creates transceivers before SDP.
+  // Creating sendrecv transceivers on the answerer too causes some browsers to
+  // allocate duplicate recvonly m-lines and negotiate ONE-WAY video/audio.
+  if (shouldCreateMeshOffer(remoteId)) createOfferTransceiversForPc(pc);
   setupMeshPeerEvents(peer);
   listenForMeshSignaling(peer);
   applyLocalTracksToPeerConnection(peer).catch(console.warn);
@@ -1233,27 +1483,101 @@ function ensureMeshPeerConnection(remoteId, participant = {}) {
   if (shouldCreateMeshOffer(remoteId)) {
     window.setTimeout(() => createMeshOffer(peer, "initial").catch(console.warn), 350);
   }
+  // Some networks stay in 'new' without raising a failed event. Surface that case.
+  peer.startupTimer = setTimeout(() => {
+    if (!state.endingLocally && peer.pc.connectionState !== "connected" && peer.pc.connectionState !== "closed") {
+      setAppStatus("Still connecting media — trying a relay/restart", "loading");
+      scheduleMeshRecovery(peer, "initial connection timeout");
+    }
+  }, 14000);
 
   return peer;
+}
+
+/** Autoplay of remote sound may be blocked even when receiving valid WebRTC tracks. */
+function updateAudioResumeButton() {
+  if (ui.resumeAudioBtn) ui.resumeAudioBtn.hidden = state.mediaResumeNeeded.size === 0;
+}
+
+function ensureRemotePlayback(video) {
+  if (!video || !video.srcObject) return;
+  video.muted = false;
+  const attempt = video.play();
+  if (!attempt || typeof attempt.catch !== "function") return;
+  attempt.then(() => {
+    state.mediaResumeNeeded.delete(video);
+    updateAudioResumeButton();
+  }).catch((error) => {
+    if (error?.name === "NotAllowedError") {
+      state.mediaResumeNeeded.add(video);
+      updateAudioResumeButton();
+      setAppStatus("Click Enable sound to hear participants", "loading");
+    } else if (error?.name !== "AbortError") {
+      console.warn("Remote media playback failed", error);
+    }
+  });
+}
+
+function resumeRemotePlayback() {
+  const players = [ui.remoteVideo, ...document.querySelectorAll(".remote-peer-tile video"), ui.screenAudio];
+  players.forEach((player) => ensureRemotePlayback(player));
+}
+
+function retryPendingMeshOffer(peer) {
+  if (!peer || peer.pc?.signalingState === "closed" || state.endingLocally) return;
+  if (!peer.pendingOffer) return;
+  if (peer.makingOffer || peer.pc.signalingState !== "stable") return;
+  const request = peer.pendingOffer;
+  peer.pendingOffer = null;
+  createMeshOffer(peer, request.reason, request.options).catch((error) => console.warn("Media offer failed", error));
 }
 
 function setupMeshPeerEvents(peer) {
   const { pc, id: remoteId } = peer;
   pc.onicecandidate = (event) => {
-    if (event.candidate && state.roomRef) {
+    if (event.candidate && state.roomRef && !state.endingLocally) {
       peer.ref.child(`candidates/${state.peerId}`).push(event.candidate.toJSON()).catch(console.warn);
     }
+  };
+  pc.onsignalingstatechange = () => {
+    if (pc.signalingState === "stable") retryPendingMeshOffer(peer);
   };
 
   pc.ontrack = (event) => {
     const track = event.track;
     if (!track) return;
-    if (!peer.stream.getTracks().some((existing) => existing.id === track.id)) {
-      peer.stream.addTrack(track);
+
+    // Media sections are allocated in fixed order by createOfferTransceiversForPc:
+    // audio[0] = microphone, audio[1] = system/tab audio,
+    // video[0] = camera, video[1] = screen share.
+    // event.streams is not a reliable discriminator: replaceTrack() and
+    // transceivers created without tracks can produce streamless ontrack events.
+    const sameKindTransceivers = pc.getTransceivers().filter((transceiver) =>
+      transceiver.receiver?.track?.kind === track.kind
+    );
+    const slot = sameKindTransceivers.indexOf(event.transceiver);
+    const isScreenTrack = slot === 1;
+    const destination = isScreenTrack ? peer.screenStream : peer.stream;
+    if (!destination.getTracks().some((existing) => existing.id === track.id)) {
+      destination.addTrack(track);
     }
-    state.remoteStream = peer.stream;
-    state.hasRemoteParticipant = true;
-    attachRemotePeerStream(remoteId);
+
+    if (isScreenTrack) {
+      const refresh = () => renderActiveScreenShare();
+      track.addEventListener("unmute", refresh);
+      track.addEventListener("mute", refresh);
+      track.addEventListener("ended", refresh);
+      renderActiveScreenShare();
+    } else {
+      state.remoteStream = peer.stream;
+      state.hasRemoteParticipant = true;
+      track.addEventListener("unmute", () => {
+        if (track.kind === "video") attachRemotePeerStream(remoteId);
+        const tile = ui.videoGrid?.querySelector(`[data-peer-id="${cssEscape(remoteId)}"]`);
+        ensureRemotePlayback(tile?.querySelector("video"));
+      });
+      attachRemotePeerStream(remoteId);
+    }
     updateVideoGridLayout();
   };
 
@@ -1261,18 +1585,43 @@ function setupMeshPeerEvents(peer) {
     const connectionState = pc.connectionState || "unknown";
     updateRemotePeerConnectionState(remoteId, connectionState);
     if (connectionState === "connected") {
+      clearTimeout(peer.startupTimer);
+      peer.recoveryAttempts = 0;
+      clearTimeout(peer.recoveryTimer);
+      peer.recoveryTimer = null;
       setAppStatus(`${peer.name || "Participant"} connected`, "connected");
+      const tile = ui.videoGrid?.querySelector(`[data-peer-id="${cssEscape(remoteId)}"]`);
+      ensureRemotePlayback(tile?.querySelector("video"));
     } else if (["failed", "disconnected"].includes(connectionState)) {
       setAppStatus(`${peer.name || "Participant"} media reconnecting...`, "loading");
-      refreshMeshPeerConnection(peer, "reconnect", { iceRestart: true });
+      scheduleMeshRecovery(peer, connectionState);
     }
   };
 
   pc.oniceconnectionstatechange = () => {
-    if (pc.iceConnectionState === "failed") {
-      refreshMeshPeerConnection(peer, "ice-restart", { iceRestart: true });
-    }
+    if (pc.iceConnectionState === "failed") scheduleMeshRecovery(peer, "ice-restart");
   };
+  pc.onicecandidateerror = (event) => {
+    console.warn(`ICE candidate error for ${remoteId}:`, event.errorCode, event.errorText);
+  };
+}
+
+function scheduleMeshRecovery(peer, reason = "Connection interrupted") {
+  if (!peer?.pc || state.endingLocally || peer.pc.connectionState === "closed" || peer.recoveryTimer) return;
+  peer.recoveryAttempts += 1;
+  const delay = Math.min(15000, 1800 * Math.pow(2, Math.min(peer.recoveryAttempts - 1, 3)));
+  peer.recoveryTimer = setTimeout(() => {
+    peer.recoveryTimer = null;
+    if (state.endingLocally || peer.pc.connectionState === "connected" || peer.pc.connectionState === "closed") return;
+    refreshMeshPeerConnection(peer, reason, { iceRestart: true });
+    if (peer.recoveryAttempts >= 3) {
+      setAppStatus("Media network blocked — check TURN server", "error");
+      if (peer.recoveryAttempts === 3) {
+        toast("Cannot connect peer audio/video. Configure a reliable TURN relay in firebase-config.js.", "error", 8000);
+      }
+    }
+    scheduleMeshRecovery(peer, reason);
+  }, delay);
 }
 
 function listenForMeshSignaling(peer) {
@@ -1283,31 +1632,38 @@ function listenForMeshSignaling(peer) {
 
   const offerCallback = async (snapshot) => {
     const offer = snapshot.val();
-    if (!offer || offer.from === state.peerId || offer.sdp === peer.lastOfferSdp) return;
+    if (!offer || offer.from === state.peerId || offer.sdp === peer.lastAppliedOfferSdp || peer.answeringOffer) return;
+    peer.answeringOffer = true;
     try {
       await answerMeshOffer(peer, offer);
     } catch (error) {
       console.warn(error);
       toast(`Could not connect media from ${peer.name || "participant"}.`, "error");
+    } finally {
+      peer.answeringOffer = false;
     }
   };
 
   const answerCallback = async (snapshot) => {
     const answer = snapshot.val();
     if (!answer || answer.from === state.peerId || answer.sdp === peer.lastAnswerSdp) return;
-    if (peer.pc.signalingState !== "have-local-offer") return;
+    // A stale answer belongs to an older offer; ignore it until the matching SDP comes in.
+    if (peer.pc.signalingState !== "have-local-offer" || answer.offerId !== peer.activeOfferId) return;
     try {
-      peer.lastAnswerSdp = answer.sdp;
       await peer.pc.setRemoteDescription(new RTCSessionDescription(answer));
+      peer.lastAnswerSdp = answer.sdp;
       await flushMeshCandidateQueue(peer);
+      retryPendingMeshOffer(peer);
     } catch (error) {
-      console.warn(error);
+      console.warn("Could not apply remote answer", error);
     }
   };
 
   const candidateCallback = (snapshot) => {
     const candidate = snapshot.val();
-    if (candidate) addMeshRemoteCandidate(peer, candidate);
+    if (!candidate || peer.processedCandidateKeys.has(snapshot.key)) return;
+    peer.processedCandidateKeys.add(snapshot.key);
+    addMeshRemoteCandidate(peer, candidate);
   };
 
   const offerRequestCallback = (snapshot) => {
@@ -1332,27 +1688,27 @@ function listenForMeshSignaling(peer) {
 }
 
 async function createMeshOffer(peer, reason = "media", options = {}) {
-  if (!peer?.pc || peer.makingOffer || state.endingLocally) return;
-  if (!["stable", "have-local-offer"].includes(peer.pc.signalingState)) return;
+  if (!peer?.pc || state.endingLocally || peer.pc.signalingState === "closed") return;
+  if (peer.makingOffer || peer.pc.signalingState !== "stable") {
+    peer.pendingOffer = { reason, options };
+    return;
+  }
   peer.makingOffer = true;
   try {
     createOfferTransceiversForPc(peer.pc);
     await applyLocalTracksToPeerConnection(peer);
-    const offer = await peer.pc.createOffer({
-      offerToReceiveAudio: true,
-      offerToReceiveVideo: true,
-      iceRestart: Boolean(options.iceRestart),
-    });
+    const offer = await peer.pc.createOffer({ iceRestart: Boolean(options.iceRestart) });
     await peer.pc.setLocalDescription(offer);
+    const offerId = makeId(12);
+    peer.activeOfferId = offerId;
     peer.lastOfferSdp = offer.sdp;
+    peer.lastAnswerSdp = "";
+    // SDP is written atomically, together with its generation ID.
     await peer.ref.update({
       updatedAt: firebase.database.ServerValue.TIMESTAMP,
-      participants: {
-        [state.peerId]: true,
-        [peer.id]: true,
-      },
       offer: {
         from: state.peerId,
+        offerId,
         reason,
         type: offer.type,
         sdp: offer.sdp,
@@ -1366,27 +1722,34 @@ async function createMeshOffer(peer, reason = "media", options = {}) {
 
 async function answerMeshOffer(peer, offer) {
   if (!peer?.pc || !offer?.sdp) return;
-  peer.lastOfferSdp = offer.sdp;
-  await peer.pc.setRemoteDescription(new RTCSessionDescription(offer));
+  if (peer.pc.signalingState !== "stable") {
+    // The designated answerer should not normally have a pending local offer.
+    // Ignore old/colliding messages and try again when stable.
+    console.warn("Offer received while signaling not stable", peer.pc.signalingState);
+    return;
+  }
+  await peer.pc.setRemoteDescription(new RTCSessionDescription({ type: offer.type, sdp: offer.sdp }));
+  // Incoming SDP creates the answerer's matching receive transceivers.
+  // Upgrade those SAME m-lines to bidirectional before making the answer.
   createOfferTransceiversForPc(peer.pc);
+  peer.pc.getTransceivers().forEach((transceiver) => {
+    if (!transceiver.stopped && transceiver.direction !== "sendrecv") transceiver.direction = "sendrecv";
+  });
   await applyLocalTracksToPeerConnection(peer);
   await flushMeshCandidateQueue(peer);
   const answer = await peer.pc.createAnswer();
   await peer.pc.setLocalDescription(answer);
-  peer.lastAnswerSdp = answer.sdp;
   await peer.ref.update({
     updatedAt: firebase.database.ServerValue.TIMESTAMP,
-    participants: {
-      [state.peerId]: true,
-      [peer.id]: true,
-    },
     answer: {
       from: state.peerId,
+      offerId: offer.offerId || null,
       type: answer.type,
       sdp: answer.sdp,
       createdAt: firebase.database.ServerValue.TIMESTAMP,
     },
   });
+  peer.lastAppliedOfferSdp = offer.sdp;
 }
 
 async function addMeshRemoteCandidate(peer, candidate) {
@@ -1420,14 +1783,99 @@ function syncMeshPeerConnections(participants) {
   updateVideoGridLayout();
 }
 
+/** Select the active presentation independently of participant camera streams.
+ * Every viewer receives a dedicated screen receiver from each mesh peer.
+ * The local preview has priority on the presenter's own screen.
+ */
+function renderActiveScreenShare() {
+  if (!ui.screenTile || !ui.screenVideo) return;
+  const localPresenting = Boolean(state.localScreenTrack && state.localScreenTrack.readyState === "live");
+  const remotePresenter = localPresenting ? null : [...state.peerConnections.values()].find((peer) =>
+    peer.screenSharing && peer.screenStream?.getVideoTracks().some((track) =>
+      track.readyState === "live" && !track.muted
+    )
+  );
+
+  if (localPresenting) {
+    const localVideoStream = state.localScreenStream || new MediaStream([state.localScreenTrack]);
+    if (ui.screenVideo.srcObject !== localVideoStream) ui.screenVideo.srcObject = localVideoStream;
+    ui.screenVideo.muted = true; // Prevent audio feedback on the presenter.
+    if (ui.screenAudio) {
+      ui.screenAudio.pause();
+      ui.screenAudio.srcObject = null;
+      state.mediaResumeNeeded.delete(ui.screenAudio);
+    }
+    ui.screenTile.dataset.source = "local";
+    delete ui.screenTile.dataset.presenterId;
+    const badge = ui.screenTile.querySelector(".tile-badge span");
+    if (badge) badge.textContent = state.localScreenAudioTrack ? "Screen + sound" : "Screen sharing";
+    ui.screenTile.hidden = false;
+  } else if (remotePresenter) {
+    const screenVideoTrack = remotePresenter.screenStream.getVideoTracks().find((track) =>
+      track.readyState === "live" && !track.muted
+    );
+    if (!screenVideoTrack) return;
+    // The screen video stays muted for reliable autoplay, while optional tab/system
+    // audio plays separately through an audio element with an Enable sound fallback.
+    if (ui.screenTile.dataset.presenterId !== remotePresenter.id ||
+        ui.screenVideo.srcObject?.getVideoTracks()?.[0] !== screenVideoTrack) {
+      ui.screenVideo.srcObject = new MediaStream([screenVideoTrack]);
+    }
+    ui.screenVideo.muted = true;
+    const audioTrack = remotePresenter.screenStream.getAudioTracks().find((track) => track.readyState === "live");
+    if (ui.screenAudio) {
+      if (audioTrack) {
+        if (ui.screenAudio.srcObject?.getAudioTracks()?.[0] !== audioTrack) {
+          ui.screenAudio.srcObject = new MediaStream([audioTrack]);
+        }
+        ensureRemotePlayback(ui.screenAudio);
+      } else {
+        ui.screenAudio.pause();
+        ui.screenAudio.srcObject = null;
+        state.mediaResumeNeeded.delete(ui.screenAudio);
+      }
+    }
+    state.remoteScreenOwnerId = remotePresenter.id;
+    state.remoteScreenStream = remotePresenter.screenStream;
+    state.screenShareUsed = true;
+    ui.screenTile.dataset.source = "remote";
+    ui.screenTile.dataset.presenterId = remotePresenter.id;
+    const badge = ui.screenTile.querySelector(".tile-badge span");
+    if (badge) badge.textContent = `${remotePresenter.name || "Participant"}'s screen`;
+    ui.screenTile.hidden = false;
+    // Muted screen video auto-plays without requiring the user to enable sound.
+    ui.screenVideo.play()?.catch((error) => {
+      if (error.name !== "AbortError") console.warn("Remote screen video playback failed", error);
+    });
+  } else {
+    ui.screenTile.hidden = true;
+    ui.screenTile.dataset.source = "";
+    delete ui.screenTile.dataset.presenterId;
+    ui.screenVideo.pause();
+    ui.screenVideo.srcObject = null;
+    if (ui.screenAudio) {
+      ui.screenAudio.pause();
+      ui.screenAudio.srcObject = null;
+      state.mediaResumeNeeded.delete(ui.screenAudio);
+    }
+    state.remoteScreenOwnerId = null;
+    state.remoteScreenStream = new MediaStream();
+  }
+  updateAudioResumeButton();
+  updateVideoGridLayout();
+}
+
 function updateRemotePeerTilesFromParticipants(participants) {
   Object.entries(participants || {}).forEach(([id, participant]) => {
     if (id === state.peerId || participant?.removed) return;
     updateRemotePeerName(id, participant?.name || "Guest");
+    const peer = state.remotePeers[id];
+    if (peer) peer.screenSharing = Boolean(participant?.screenSharing);
     const tile = ui.videoGrid?.querySelector(`[data-peer-id="${cssEscape(id)}"]`);
     const handBadge = tile?.querySelector(".hand-badge");
     if (handBadge) handBadge.hidden = !(participant?.raisedHand || participant?.handRaised);
   });
+  renderActiveScreenShare();
 }
 
 function closeMeshPeerConnection(remoteId, removeTile = true) {
@@ -1436,13 +1884,20 @@ function closeMeshPeerConnection(remoteId, removeTile = true) {
   peer.listeners.splice(0).forEach((off) => {
     try { off(); } catch (_) {}
   });
+  clearTimeout(peer.recoveryTimer);
+  clearTimeout(peer.startupTimer);
+  peer.pendingOffer = null;
   try { peer.pc?.close(); } catch (_) {}
-  peer.stream?.getTracks().forEach((track) => {
+  const video = ui.videoGrid?.querySelector(`[data-peer-id="${cssEscape(remoteId)}"] video`);
+  if (video) state.mediaResumeNeeded.delete(video);
+  updateAudioResumeButton();
+  [peer.stream, peer.screenStream].forEach((stream) => stream?.getTracks().forEach((track) => {
     try { track.stop?.(); } catch (_) {}
-  });
+  }));
   state.peerConnections.delete(remoteId);
   delete state.remotePeers[remoteId];
   if (removeTile) removeRemotePeerTile(remoteId);
+  renderActiveScreenShare();
 }
 
 function closeAllMeshPeerConnections() {
@@ -1463,6 +1918,8 @@ function listenForRoomState() {
     if (data.hostName) state.hostName = data.hostName;
     syncRoomControlsUI();
     updateChatAvailability();
+    // Do not treat a temporary missing/offline snapshot as an explicit host
+    // hangup. This used to close the call during brief Firebase interruptions.
     if (data.status === "ended" && !state.endingLocally) {
       handleForcedMeetingExit("The host ended the meeting.");
     }
@@ -2080,9 +2537,10 @@ function enterMeetingScreen() {
   state.remoteParticipant = null;
   state.handRaised = false;
   state.endingLocally = false;
+  state.mediaResumeNeeded.clear();
+  updateAudioResumeButton();
   state.pendingJoinRequests = [];
   state.activeJoinRequest = null;
-  state.waitingForAdmission = false;
   state.waitingForAdmission = false;
   setUnreadChatCount(0);
   if (ui.chatPopups) ui.chatPopups.innerHTML = "";
@@ -2097,7 +2555,7 @@ function enterMeetingScreen() {
   loadMeetingNotes();
   ui.remoteLabel.textContent = state.role === "host" ? "" : "Connecting to host...";
   updateRemoteTileVisibility(state.role !== "host");
-  if (ui.meetingProfileBadge) ui.meetingProfileBadge.textContent = String((state.remoteStream ? 2 : 1));
+  if (ui.meetingProfileBadge) ui.meetingProfileBadge.textContent = String(Math.max(1, Object.keys(state.participants).length));
   if (ui.inviteLinkText) ui.inviteLinkText.textContent = buildInviteLink();
   if (ui.inviteCardUser) ui.inviteCardUser.textContent = `Joined as ${state.displayName || 'Guest'}`;
   ui.chatDrawer.classList.remove("open");
@@ -2131,7 +2589,7 @@ async function toggleMicDuringCall() {
     } catch (error) {
       console.warn(error);
       setAppStatus("Failed • Mic blocked", "error");
-      toast("Microphone permission blocked.", "error");
+      toast(describeMediaError(error, "Microphone"), "error", 6000);
     }
   } else {
     state.currentAudioTrack.enabled = !state.currentAudioTrack.enabled;
@@ -2160,7 +2618,7 @@ async function toggleCameraDuringCall() {
     } catch (error) {
       console.warn(error);
       setAppStatus("Failed • Camera blocked", "error");
-      toast("Camera permission blocked.", "error");
+      toast(describeMediaError(error, "Camera"), "error", 6000);
     }
   } else {
     state.currentVideoTrack.enabled = !state.currentVideoTrack.enabled;
@@ -2197,23 +2655,18 @@ async function toggleScreenShare() {
     state.localScreenAudioTrack = screenStream.getAudioTracks()[0] || null;
     if (!state.localScreenTrack) throw new Error("No screen track selected");
 
-    await applyLocalTracksToSenders();
-    await requestMediaRenegotiation("Screen sharing started");
-
     state.screenShareUsed = true;
     setPinnedTile(null, false);
-    ui.screenVideo.srcObject = screenStream;
-    ui.screenTile.hidden = false;
-    ui.screenTile.dataset.source = "local";
-    const badge = ui.screenTile.querySelector(".tile-badge span");
-    if (badge) badge.textContent = state.localScreenAudioTrack ? "Screen + sound" : "Screen sharing";
+    renderActiveScreenShare();
     ui.screenBtn.classList.add("on");
     ui.localVideo.srcObject = state.localStream;
+    await updateParticipantPresence(); // Notify existing and late-joining viewers.
+    await applyLocalTracksToSenders();
+    await requestMediaRenegotiation("Screen sharing started");
     setAppStatus(state.localScreenAudioTrack ? "Screen sharing with audio" : "Screen sharing started", "connected");
     if (!state.localScreenAudioTrack) {
       toast("Screen audio is unavailable for this source. Screen video is still being shared.");
     }
-    await updateParticipantPresence();
 
     state.localScreenTrack.onended = async () => {
       await stopScreenShare(false);
@@ -2224,8 +2677,14 @@ async function toggleScreenShare() {
       };
     }
   } catch (error) {
-    console.warn(error);
-    setAppStatus("Screen share cancelled", "ready");
+    console.warn("Screen share failed", error);
+    if (state.localScreenStream) await stopScreenShare(false);
+    if (["NotAllowedError", "AbortError"].includes(error?.name)) {
+      setAppStatus("Screen sharing cancelled", "ready");
+    } else {
+      setAppStatus("Screen sharing failed", "error");
+      toast(`Could not start screen sharing: ${error?.message || "Unknown error"}`, "error", 6000);
+    }
   } finally {
     updateLocalMediaUI();
     updateVideoGridLayout();
@@ -2233,21 +2692,21 @@ async function toggleScreenShare() {
 }
 
 async function stopScreenShare(showToast = true) {
+  if (!state.localScreenTrack && !state.localScreenStream) return;
+  if (state.localScreenTrack) state.localScreenTrack.onended = null;
+  if (state.localScreenAudioTrack) state.localScreenAudioTrack.onended = null;
   try { state.localScreenTrack?.stop(); } catch (_) {}
   try { state.localScreenAudioTrack?.stop(); } catch (_) {}
   state.localScreenStream?.getTracks().forEach((track) => { try { track.stop(); } catch (_) {} });
   state.localScreenTrack = null;
   state.localScreenAudioTrack = null;
   state.localScreenStream = null;
-  await applyLocalTracksToSenders();
-  await requestMediaRenegotiation("Screen sharing stopped");
-  if (ui.screenTile.dataset.source !== "remote") {
-    ui.screenVideo.srcObject = null;
-    ui.screenTile.hidden = true;
-  }
+  renderActiveScreenShare(); // Return to an existing remote presenter, if any.
   ui.screenBtn.classList.remove("on");
   updateLocalMediaUI();
   await updateParticipantPresence();
+  await applyLocalTracksToSenders();
+  await requestMediaRenegotiation("Screen sharing stopped");
   updatePresentationHud();
   setAppStatus("Screen sharing stopped", "ready");
   if (showToast) toast("Screen sharing stopped.");
@@ -2515,7 +2974,7 @@ function attachRemotePeerStream(remoteId) {
   const hasVideo = peer.stream.getVideoTracks().some((track) => track.readyState === "live" && !track.muted);
   placeholder?.classList.toggle("hidden", hasVideo);
   video?.classList.toggle("is-live", hasVideo);
-  video?.play?.().catch(() => {});
+  ensureRemotePlayback(video);
   peer.stream.getVideoTracks().forEach((track) => {
     track.onmute = () => {
       placeholder?.classList.remove("hidden");
@@ -2524,6 +2983,7 @@ function attachRemotePeerStream(remoteId) {
     track.onunmute = () => {
       placeholder?.classList.add("hidden");
       video?.classList.add("is-live");
+      ensureRemotePlayback(video);
     };
     track.onended = () => {
       placeholder?.classList.remove("hidden");
@@ -2795,11 +3255,16 @@ async function leaveMeeting() {
     state.pc.close();
   }
   closeAllMeshPeerConnections();
+  state.mediaResumeNeeded.clear();
+  updateAudioResumeButton();
   stopLocalMedia();
 
   state.roomId = null;
   state.role = null;
   state.roomRef = null;
+  state.joinRequestId = null;
+  state.createdRoomByThisSession = false;
+  state.firebaseConnected = false;
   state.pc = null;
   state.peerConnections = new Map();
   state.remotePeers = {};
@@ -2831,7 +3296,9 @@ async function leaveMeeting() {
   if (ui.waitingRoomCard) ui.waitingRoomCard.hidden = true;
   updateHandUI();
   if (ui.screenTile) { ui.screenTile.hidden = true; ui.screenTile.dataset.source = ""; }
-  if (ui.screenVideo) ui.screenVideo.srcObject = null;
+  if (ui.screenVideo) { ui.screenVideo.pause(); ui.screenVideo.srcObject = null; }
+  if (ui.screenAudio) { ui.screenAudio.pause(); ui.screenAudio.srcObject = null; }
+  state.remoteScreenOwnerId = null;
   state.remoteScreenStream = new MediaStream();
   if (ui.devicePanel) ui.devicePanel.hidden = true;
   ui.hangupBtn.disabled = false;
@@ -2866,11 +3333,16 @@ async function handleForcedMeetingExit(message) {
     state.pc.close();
   }
   closeAllMeshPeerConnections();
+  state.mediaResumeNeeded.clear();
+  updateAudioResumeButton();
   stopLocalMedia();
 
   state.roomId = null;
   state.role = null;
   state.roomRef = null;
+  state.joinRequestId = null;
+  state.createdRoomByThisSession = false;
+  state.firebaseConnected = false;
   state.pc = null;
   state.peerConnections = new Map();
   state.remotePeers = {};
@@ -2901,7 +3373,9 @@ async function handleForcedMeetingExit(message) {
   if (ui.waitingRoomCard) ui.waitingRoomCard.hidden = true;
   updateHandUI();
   if (ui.screenTile) { ui.screenTile.hidden = true; ui.screenTile.dataset.source = ""; }
-  if (ui.screenVideo) ui.screenVideo.srcObject = null;
+  if (ui.screenVideo) { ui.screenVideo.pause(); ui.screenVideo.srcObject = null; }
+  if (ui.screenAudio) { ui.screenAudio.pause(); ui.screenAudio.srcObject = null; }
+  state.remoteScreenOwnerId = null;
   state.remoteScreenStream = new MediaStream();
   if (ui.devicePanel) ui.devicePanel.hidden = true;
   ui.hangupBtn.disabled = false;
@@ -3053,7 +3527,7 @@ function updatePresentationHud() {
   const isLocal = hasScreen && source === "local";
   const hasLocalAudioTrack = Boolean(state.localScreenAudioTrack);
   const localAudioEnabled = Boolean(state.localScreenAudioTrack && state.localScreenAudioTrack.enabled);
-  const hasRemoteAudio = hasScreen && source === "remote";
+  const hasRemoteAudio = hasScreen && source === "remote" && state.remoteScreenStream?.getAudioTracks().some((track) => track.readyState === "live");
 
   ui.presentationHud.hidden = !hasScreen;
   document.body.classList.toggle("screen-share-mode", hasScreen);
@@ -3061,7 +3535,7 @@ function updatePresentationHud() {
 
   if (hasScreen) {
     if (isLocal) ui.presenterPillText.textContent = `${state.displayName || 'You'} (You, presenting)`;
-    else ui.presenterPillText.textContent = `${state.hostName || 'Participant'} is presenting`;
+    else ui.presenterPillText.textContent = `${state.remotePeers[state.remoteScreenOwnerId]?.name || 'Participant'} is presenting`;
   }
 
   const audioActive = isLocal ? localAudioEnabled : hasRemoteAudio;
@@ -3123,12 +3597,13 @@ function setFeedbackRating(value = 0) {
   ui.feedbackRatingButtons?.forEach((button) => {
     const rating = Number(button.dataset.rating || 0);
     button.classList.toggle("active", rating <= state.feedbackRating && state.feedbackRating > 0);
+    button.setAttribute("aria-pressed", String(rating === state.feedbackRating));
   });
 }
 
 async function submitFeedback() {
   if (!state.db) {
-    toast("Feedback saved locally. Firebase is not ready.");
+    toast("Feedback could not be sent because Firebase is unavailable.", "error");
     closeFeedbackModal();
     return;
   }
@@ -3168,10 +3643,14 @@ async function safeCleanupAfterFailedStart() {
   clearPeerTimers();
   if (state.pc) state.pc.close();
   closeAllMeshPeerConnections();
+  state.mediaResumeNeeded.clear();
+  updateAudioResumeButton();
   stopLocalMedia();
-  if (state.role === "host" && state.roomRef) {
+  if (state.role === "host" && state.createdRoomByThisSession && state.roomRef) {
     await state.roomRef.remove().catch(() => {});
   }
+  state.createdRoomByThisSession = false;
+  state.firebaseConnected = false;
   state.pc = null;
   state.roomRef = null;
   state.roomId = null;
@@ -3194,6 +3673,10 @@ function stopLocalMedia() {
 }
 
 function removeFirebaseListeners() {
+  state.pendingAdmissionUnsubscribe?.();
+  state.pendingRoomWatchUnsubscribe?.();
+  state.pendingAdmissionUnsubscribe = null;
+  state.pendingRoomWatchUnsubscribe = null;
   state.listeners.splice(0).forEach((off) => {
     try { off(); } catch (_) {}
   });
