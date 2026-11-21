@@ -1,0 +1,222 @@
+/* Akaora Meet — verified light-mode consistency patch, 2026-11-21.
+   Applied LAST to resolve inherited hard-coded dark palette conflicts.
+   The video canvas deliberately stays dark in both themes for video readability. */
+body[data-theme="light"] {
+  color-scheme: light;
+  --akaora-ui-bg: #f2f5fa;
+  --akaora-ui-surface: rgba(255,255,255,.94);
+  --akaora-ui-ink: #13294b;
+  --akaora-ui-muted: #526680;
+  --akaora-ui-line: rgba(42,74,113,.19);
+  --akaora-ui-hover: rgba(24,71,121,.075);
+  --akaora-ui-accent: #ae4c1b;
+}
+body[data-theme="dark"] { color-scheme: dark; }
+/* Consistent public page light surfaces (Homepage / Create / Join). */
+body[data-theme="light"]:not([data-view="meeting"]) {
+  background: #f7f6f3 !important;
+  color: #14284b !important;
+}
+body[data-theme="light"]:not([data-view="meeting"]) .topbar,
+body[data-theme="light"]:not([data-view="meeting"]) .app-shell > .topbar {
+  background: rgba(255,255,255,.77) !important;
+  color: #122849 !important;
+  border-bottom: 1px solid rgba(37,65,98,.16) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(130%) !important;
+  backdrop-filter: blur(22px) saturate(130%) !important;
+}
+body[data-theme="light"] .topbar .theme-switch,
+body[data-theme="light"] .topbar .theme-switch span,
+body[data-theme="light"] .topbar .theme-switch svg,
+body[data-theme="light"] .topbar .status-chip {
+  color: #193559 !important;
+  stroke: currentColor;
+}
+body[data-theme="light"]:not([data-view="meeting"]) .form-card,
+body[data-theme="light"]:not([data-view="meeting"]) .form-heading h2,
+body[data-theme="light"]:not([data-view="meeting"]) .form-view .field-group label,
+body[data-theme="light"]:not([data-view="meeting"]) .generated-room strong,
+body[data-theme="light"]:not([data-view="meeting"]) .permission-title {
+  color: #102848 !important;
+}
+body[data-theme="light"]:not([data-view="meeting"]) .form-view :is(input,textarea) {
+  color: #102848 !important;
+  caret-color: #a94e1c !important;
+  border-color: rgba(29,64,106,.25) !important;
+}
+body[data-theme="light"]:not([data-view="meeting"]) .form-view input::placeholder { color: #728198 !important; opacity: 1 !important; }
+body[data-theme="light"]:not([data-view="meeting"]) .form-heading p,
+body[data-theme="light"]:not([data-view="meeting"]) .generated-room > span,
+body[data-theme="light"]:not([data-view="meeting"]) .form-product-note { color: #566781 !important; }
+body[data-theme="light"]:not([data-view="meeting"]) .toggle-pill[data-enabled="false"] { color: #485f7a !important; }
+body[data-theme="light"]:not([data-view="meeting"]) .hero-photo-caption { color: #fff !important; }
+
+/* Switch the MEETING CHROME too. This is the root cause of the old light-mode bug. */
+body[data-theme="light"][data-view="meeting"] {
+  background: #eaf0f7 !important;
+  color: var(--akaora-ui-ink) !important;
+}
+body[data-theme="light"][data-view="meeting"] .app-shell,
+body[data-theme="light"][data-view="meeting"] #meetingView {
+  background: transparent !important;
+}
+body[data-theme="light"][data-view="meeting"] #meetingView .meeting-top {
+  background: rgba(255,255,255,.93) !important;
+  color: var(--akaora-ui-ink) !important;
+  border: 1px solid var(--akaora-ui-line) !important;
+  box-shadow: 0 6px 26px rgba(20,40,70,.065), inset 0 1px rgba(255,255,255,.75) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(125%) !important;
+  backdrop-filter: blur(22px) saturate(125%) !important;
+}
+body[data-theme="light"][data-view="meeting"] #meetingView .meeting-top :is(.meeting-live-chip,.meeting-hud-left,.meeting-clock) {
+  color: #273d5e !important;
+}
+body[data-theme="light"][data-view="meeting"] #meetingView .meeting-top .meeting-clock,
+body[data-theme="light"][data-view="meeting"] #meetingView .meeting-top .meeting-clock * { color: #102e50 !important; }
+body[data-theme="light"][data-view="meeting"] #meetingView .meeting-top .room-meta strong { color: #102848 !important; }
+body[data-theme="light"][data-view="meeting"] #meetingView .meeting-top .room-meta :is(span,small,small b,.host-meta) { color: #526780 !important; }
+body[data-theme="light"][data-view="meeting"] #meetingView .meeting-top :is(.meeting-hud-left,.share-actions) { border-color: var(--akaora-ui-line) !important; }
+body[data-theme="light"][data-view="meeting"] #meetingView .meeting-top .share-actions > :is(button,.mini-btn,.theme-switch) {
+  color: #163455 !important;
+  background: rgba(244,248,253,.95) !important;
+  border-color: rgba(50,83,123,.20) !important;
+  box-shadow: none !important;
+}
+body[data-theme="light"][data-view="meeting"] #meetingView .meeting-top .share-actions :is(button,.mini-btn,.theme-switch):hover {
+  background: #e9f0f9 !important;
+  border-color: rgba(25,67,115,.37) !important;
+}
+body[data-theme="light"][data-view="meeting"] #meetingView .meeting-top .share-actions :is(span,svg,svg path,svg circle) {
+  color: #163455 !important;
+  stroke: currentColor !important;
+  opacity: 1 !important;
+}
+body[data-theme="light"][data-view="meeting"] #meetingView .meeting-top .share-actions .theme-switch span { color: #163455 !important; }
+
+/* Stage and picture-in-picture previews remain dark in every theme. */
+body[data-theme="light"][data-view="meeting"] #meetingView :is(.stage,.video-grid,.video-tile) {
+  border-color: rgba(161,194,234,.27) !important;
+}
+body[data-theme="light"][data-view="meeting"] #meetingView .stage { background: #081429 !important; }
+body[data-theme="light"][data-view="meeting"] #meetingView .video-tile { background: #17202f !important; color: #f7faff !important; }
+body[data-theme="light"][data-view="meeting"] #meetingView .video-tile :is(.avatar-placeholder p,.tile-badge,.tile-badge span) { color: #f6f8ff !important; }
+
+/* A frosted ivory call dock with legible SVG actions and safe state colors. */
+body[data-theme="light"][data-view="meeting"] #meetingView .call-layout .stage > .call-controls,
+body[data-theme="light"][data-view="meeting"] #meetingView .call-controls {
+  background: rgba(255,255,255,.94) !important;
+  color: #173354 !important;
+  border: 1px solid rgba(51,79,118,.22) !important;
+  box-shadow: 0 10px 32px rgba(11,35,74,.15) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  backdrop-filter: blur(20px) !important;
+}
+body[data-theme="light"][data-view="meeting"] #meetingView .call-controls > .control-btn:not(#hangupBtn) {
+  background: rgba(232,239,249,.85) !important;
+  color: #183858 !important;
+  border: 1px solid rgba(38,73,113,.13) !important;
+}
+body[data-theme="light"][data-view="meeting"] #meetingView .call-controls > .control-btn:not(#hangupBtn):hover { background: #dae8f8 !important; }
+body[data-theme="light"][data-view="meeting"] #meetingView .call-controls > .control-btn.off { background: #f9e9e7 !important; color: #9e423e !important; }
+body[data-theme="light"][data-view="meeting"] #meetingView .call-controls > .control-btn.on { background: #fff0dc !important; color: #a25317 !important; border-color: rgba(184,93,29,.22) !important; }
+body[data-theme="light"][data-view="meeting"] #meetingView .call-controls > .control-btn:not(#hangupBtn) :is(svg,.control-label) { color: inherit !important; stroke: currentColor !important; }
+body[data-theme="light"][data-view="meeting"] #meetingView .call-controls > #hangupBtn { background: #d74343 !important; color: #fff !important; }
+body[data-theme="light"][data-view="meeting"] #meetingView .call-controls > #hangupBtn :is(svg,.control-label) { color: #fff !important; }
+
+/* All drawers, device popovers, and room menu use the light palette. */
+body[data-theme="light"][data-view="meeting"] :is(#chatDrawer,#morePanel,#devicePanel,#participantsPanel,#notesPanel) {
+  background: rgba(255,255,255,.98) !important;
+  color: #13294b !important;
+  border-color: rgba(46,79,117,.18) !important;
+  box-shadow: 0 12px 36px rgba(16,39,72,.16) !important;
+  -webkit-backdrop-filter: blur(22px) !important;
+  backdrop-filter: blur(22px) !important;
+}
+body[data-theme="light"][data-view="meeting"] :is(#chatDrawer,#morePanel,#devicePanel,#participantsPanel,#notesPanel) :is(.chat-head,.more-head,.device-head,.side-panel-head) {
+  color: #13294b !important;
+  border-bottom-color: rgba(46,79,117,.17) !important;
+}
+body[data-theme="light"][data-view="meeting"] :is(#chatDrawer,#morePanel,#devicePanel,#participantsPanel,#notesPanel) :is(strong,b,.more-action-copy b,.section-title-row strong,.device-field span) {
+  color: #13294b !important;
+}
+body[data-theme="light"][data-view="meeting"] :is(#chatDrawer,#morePanel,#devicePanel,#participantsPanel,#notesPanel) :is(small,.more-action-copy small,.device-note,.notes-status) {
+  color: #566b84 !important;
+}
+body[data-theme="light"][data-view="meeting"] :is(#chatDrawer,#morePanel,#devicePanel,#participantsPanel,#notesPanel) :is(.icon-only,.mini-btn,.refresh-devices) {
+  background: rgba(237,243,251,.85) !important;
+  color: #1a3859 !important;
+  border-color: rgba(48,80,116,.16) !important;
+}
+body[data-theme="light"][data-view="meeting"] :is(#chatDrawer,#morePanel,#devicePanel,#participantsPanel,#notesPanel) :is(.icon-only,.mini-btn,.refresh-devices) svg { color: inherit !important; stroke: currentColor !important; }
+body[data-theme="light"][data-view="meeting"] #chatDrawer .chat-messages { background: transparent !important; color: #13294b !important; }
+body[data-theme="light"][data-view="meeting"] #chatDrawer .chat-message { color: #172e50 !important; }
+body[data-theme="light"][data-view="meeting"] #chatDrawer .chat-message.mine { background: #f9ead9 !important; color: #172e50 !important; }
+body[data-theme="light"][data-view="meeting"] #chatDrawer .chat-input-wrap {
+  background: #f4f7fb !important;
+  color: #1a3859 !important;
+  border: 1px solid #d7e1ed !important;
+  box-shadow: none !important;
+}
+body[data-theme="light"][data-view="meeting"] #chatDrawer #chatInput {
+  background: #fff !important;
+  color: #182e4c !important;
+  border: 1px solid #cedce9 !important;
+  caret-color: #b25922 !important;
+}
+body[data-theme="light"][data-view="meeting"] #chatDrawer #chatInput::placeholder { color: #66778c !important; opacity: 1 !important; }
+body[data-theme="light"][data-view="meeting"] #chatDrawer .emoji-btn { color: #24476e !important; background: transparent !important; }
+body[data-theme="light"][data-view="meeting"] #chatDrawer .send-btn { background: #d96a28 !important; color: #fff !important; border-color: #d96a28 !important; }
+body[data-theme="light"][data-view="meeting"] #chatDrawer .send-btn svg { stroke: #fff !important; }
+body[data-theme="light"][data-view="meeting"] #morePanel .more-panel-hero { background: linear-gradient(130deg,#f0f5fb,#fff8f0) !important; border-color: #dae3ed !important; }
+body[data-theme="light"][data-view="meeting"] #morePanel .more-panel-brand :is(strong,small) { color: #173353 !important; }
+body[data-theme="light"][data-view="meeting"] #morePanel button.more-action-btn,
+body[data-theme="light"][data-view="meeting"] #morePanel :is(.host-control-btn,.view-mode-option) {
+  background: #f5f8fc !important;
+  border-color: #d9e3ee !important;
+  color: #193657 !important;
+}
+body[data-theme="light"][data-view="meeting"] #morePanel button.more-action-btn:hover,
+body[data-theme="light"][data-view="meeting"] #morePanel :is(.host-control-btn,.view-mode-option):hover { background: #e9f0f8 !important; }
+body[data-theme="light"][data-view="meeting"] #morePanel .more-action-icon { background: #eaf1fb !important; border-color: #dae6f4 !important; }
+body[data-theme="light"][data-view="meeting"] #morePanel .more-action-icon svg { stroke: #b65b24 !important; }
+body[data-theme="light"][data-view="meeting"] #morePanel :is(.range-field,.switch-field) { color: #193657 !important; }
+body[data-theme="light"][data-view="meeting"] #devicePanel :is(select,select option),
+body[data-theme="light"][data-view="meeting"] #notesPanel .notes-input {
+  color: #163354 !important;
+  background: #f8fafc !important;
+  border: 1px solid #d1deea !important;
+}
+body[data-theme="light"][data-view="meeting"] #devicePanel .device-note { color: #53677e !important; }
+body[data-theme="light"][data-view="meeting"] #participantsPanel .participants-list { color: #183553 !important; }
+
+/* Room invitations and feedback in both themes retain accessible contrast. */
+body[data-theme="light"][data-view="meeting"] #inviteCard {
+  background: rgba(255,255,255,.98) !important;
+  color: #193354 !important;
+  border: 1px solid #d6e1ef !important;
+  box-shadow: 0 18px 44px rgba(12,36,69,.20) !important;
+}
+body[data-theme="light"][data-view="meeting"] #inviteCard :is(.invite-card-title,.invite-card-text,.invite-card-user) { color: #213955 !important; }
+body[data-theme="light"][data-view="meeting"] #inviteCard .invite-link-box { color: #173354 !important; background: #f1f5fb !important; border-color: #d9e4ef !important; }
+body[data-theme="light"][data-view="meeting"] #inviteCard .invite-card-note { color: #395878 !important; background: transparent !important; border-color: #bcd1e7 !important; }
+body[data-theme="light"][data-view="meeting"] #inviteCard .invite-card-close { color: #1f3c5e !important; }
+body[data-theme="light"] #meetingEndedModal .feedback-modal {
+  background: #fbfaf7 !important; color: #172c4c !important;
+  scrollbar-color: rgba(55,83,119,.35) transparent !important;
+}
+body[data-theme="light"] #meetingEndedModal .feedback-modal :is(.feedback-text,.meeting-summary-list,.feedback-brand-note) { color: #435d7a !important; }
+body[data-theme="light"] #meetingEndedModal .feedback-input { background: #fff !important; color: #173354 !important; border-color: #d4dfeb !important; }
+body[data-theme="light"] #meetingEndedModal .feedback-rating button { color: #bd651f !important; }
+
+/* Browser-native select fields and scrollbars follow the active theme. */
+body[data-theme="light"] :is(#chatDrawer,#morePanel,#devicePanel,#participantsPanel,#notesPanel,.feedback-modal) {
+  scrollbar-color: rgba(68,101,140,.32) transparent !important;
+  scrollbar-width: thin !important;
+}
+body[data-theme="light"] :is(#chatDrawer,#morePanel,#devicePanel,#participantsPanel,#notesPanel,.feedback-modal)::-webkit-scrollbar { width: 5px; }
+body[data-theme="light"] :is(#chatDrawer,#morePanel,#devicePanel,#participantsPanel,#notesPanel,.feedback-modal)::-webkit-scrollbar-thumb { background: rgba(68,101,140,.32); border-radius: 9px; }
+body[data-theme="light"] ::selection { background: rgba(255,154,44,.35); color: #122d50; }
+@media (max-width: 720px) {
+  body[data-theme="light"][data-view="meeting"] :is(#chatDrawer,#morePanel,#devicePanel,#participantsPanel,#notesPanel) { border-radius: 15px !important; }
+  body[data-theme="light"][data-view="meeting"] #meetingView .meeting-top { padding: 9px 10px !important; }
+}

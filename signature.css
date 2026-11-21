@@ -1,0 +1,472 @@
+/* Akaora Meet — SIGNATURE EDITION (November 2026)
+   Brand palette based on Akaora Technologies logo.
+   Design principles: flat editorial sections, navy canvas, orange highlights,
+   SVG-first iconography, restrained motion and accessible contrast.
+   Kept separate from WebRTC/Firebase application code. */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
+
+:root {
+  --akaora-navy: #071b43;
+  --akaora-blue: #0d2d65;
+  --akaora-orange: #ff981b;
+  --akaora-flame: #ff5733;
+  --akaora-ivory: #f7f5f0;
+  --akaora-danger: #df5147;
+  --akaora-font-display: 'Playfair Display', Georgia, serif;
+  --akaora-font-ui: 'DM Sans', Inter, system-ui, sans-serif;
+}
+body[data-theme="dark"] {
+  --atelier-bg: #06142d;
+  --atelier-ink: #f7f5f0;
+  --atelier-muted: #bac7d8;
+  --atelier-line: #294163;
+  --atelier-accent: #ffad45;
+  --atelier-soft: #0b2349;
+  --atelier-surface: #071b43;
+  --atelier-inverse: #ff981b;
+  --atelier-inverse-text: #071b43;
+  --sig-bg: #06142d;
+  --sig-surface: #091c3d;
+  --sig-stage: #051128;
+  --sig-panel: #0a2146;
+  --sig-text: #f7f5f0;
+  --sig-muted: #bac7d8;
+  --sig-quiet: #91a7c2;
+  --sig-line: #294163;
+  --sig-accent: #ffad45;
+  --sig-cta: #ff981b;
+  --sig-cta-hover: #ffae43;
+  --sig-on-cta: #071b43;
+}
+body[data-theme="light"] {
+  --atelier-bg: #f7f5f0;
+  --atelier-ink: #071b43;
+  --atelier-muted: #52637b;
+  --atelier-line: #d5dae4;
+  --atelier-accent: #aa471b;
+  --atelier-soft: #eef0f4;
+  --atelier-surface: #fffdfa;
+  --atelier-inverse: #071b43;
+  --atelier-inverse-text: #fffdfa;
+  --sig-bg: #f7f5f0;
+  --sig-surface: #fffdfa;
+  --sig-stage: #071327;
+  --sig-panel: #f5f6f9;
+  --sig-text: #071b43;
+  --sig-muted: #52637b;
+  --sig-quiet: #65768e;
+  --sig-line: #d5dae4;
+  --sig-accent: #a8471d;
+  --sig-cta: #071b43;
+  --sig-cta-hover: #0d2d65;
+  --sig-on-cta: #fffdfa;
+}
+
+body[data-theme] { font-family: var(--akaora-font-ui) !important; }
+body[data-theme]:not([data-view="meeting"]) {
+  color: var(--sig-text) !important;
+  background: var(--sig-bg) !important;
+}
+body[data-theme] :is(h1,h2,h3) { text-wrap: balance; }
+body[data-theme] :is(button, a, input, textarea, select):focus-visible {
+  outline: 2px solid var(--sig-accent) !important;
+  outline-offset: 3px !important;
+}
+body[data-theme] ::selection { background: #ff981b; color: #071b43; }
+
+/* Global brand identity and surface. No floating header card. */
+body[data-theme] .topbar {
+  border-bottom: 1px solid var(--sig-line) !important;
+  background: transparent !important;
+}
+body[data-theme] .topbar .brand strong,
+body[data-theme] .topbar .brand-meet,
+body[data-theme] .topbar .brand strong b { color: var(--sig-text) !important; }
+body[data-theme] .topbar .brand-stop { color: var(--sig-accent) !important; }
+body[data-theme] .topbar .brand small { color: var(--sig-quiet) !important; }
+body[data-theme] .topbar .brand-logo { filter: drop-shadow(0 3px 14px rgba(255, 152, 27, .10)); }
+body[data-theme] .topbar .status-chip { color: var(--sig-muted) !important; }
+body[data-theme] .topbar .status-chip span { background: #3fbd96 !important; }
+body[data-theme] .topbar .theme-switch,
+body[data-theme] .topbar .theme-switch:hover {
+  color: var(--sig-text) !important;
+  border-left: 1px solid var(--sig-line) !important;
+  background: transparent !important;
+}
+body[data-theme] .topbar .theme-switch svg { stroke: var(--sig-text) !important; }
+
+/* Editorial landing page: real photography, strong typography, no cards. */
+body[data-theme] .hero-card,
+body[data-theme] .feature-strip article,
+body[data-theme] .home-panels .info-panel,
+body[data-theme] .how-panel,
+body[data-theme] .steps-row article { box-shadow: none !important; }
+body[data-theme] .hero-copy h1,
+body[data-theme] .info-panel h2,
+body[data-theme] .how-panel h2,
+body[data-theme] .form-heading h2,
+body[data-theme] .feedback-modal h3,
+body[data-view="meeting"] .chat-head strong,
+body[data-view="meeting"] .more-head strong,
+body[data-view="meeting"] .side-panel-head strong,
+body[data-view="meeting"] .device-head strong {
+  font-family: var(--akaora-font-display) !important;
+  letter-spacing: -.045em !important;
+  font-weight: 400 !important;
+}
+body[data-theme] .hero-copy h1 {
+  color: var(--sig-text) !important;
+  font-size: clamp(3.45rem, 5.2vw, 6.55rem) !important;
+  line-height: 1.15 !important;
+}
+body[data-theme] .hero-pill,
+body[data-theme] .hero-text,
+body[data-theme] .trust-row,
+body[data-theme] .hero-product-label { color: var(--sig-muted) !important; }
+body[data-theme] .pill-spark { background: var(--sig-accent) !important; }
+body[data-theme] .headline-accent,
+body[data-theme] .hero-period,
+body[data-theme] .hero-product-credit strong { color: var(--sig-accent) !important; }
+body[data-theme] .hero-primary,
+body[data-theme] .primary-action:not(.feedback-submit),
+body[data-theme] .invite-primary-btn {
+  background: linear-gradient(120deg, #ffad2b 0%, #ff981b 55%, #ff6a33 100%) !important;
+  color: #071b43 !important;
+  border: 1px solid transparent !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+body[data-theme] :is(.hero-primary,.primary-action:not(.feedback-submit),.invite-primary-btn):not(:disabled):hover {
+  background: #ffc16d !important;
+  color: #071b43 !important;
+  filter: none !important;
+}
+body[data-theme] .primary-action:disabled { opacity: .52 !important; cursor: not-allowed !important; }
+body[data-theme] .hero-secondary,
+body[data-theme] .form-view .back-btn {
+  color: var(--sig-text) !important;
+  border-bottom-color: var(--sig-line) !important;
+}
+body[data-theme] .hero-secondary:hover,
+body[data-theme] .form-view .back-btn:hover { color: var(--sig-accent) !important; border-bottom-color: var(--sig-accent) !important; }
+body[data-theme] .trust-row,
+body[data-theme] .feature-strip,
+body[data-theme] .feature-strip article + article,
+body[data-theme] .info-panel + .info-panel,
+body[data-theme] .how-panel,
+body[data-theme] .steps-row article,
+body[data-theme] .soft-list li,
+body[data-theme] .home-footer { border-color: var(--sig-line) !important; }
+body[data-theme] .trust-row i { background: var(--sig-accent) !important; }
+body[data-theme] .hero-visual.hero-photo-wrap {
+  background: #071b43 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  position: relative;
+}
+body[data-theme] .hero-photo { filter: saturate(.85) contrast(1.07) !important; }
+body[data-theme] .hero-photo-wrap::after {
+  background: linear-gradient(180deg,rgba(5,14,30,.22),transparent 38%,rgba(5,14,30,.82) 100%) !important;
+}
+/* A tiny Akaora-orange signature bar is a branded accent, not a card. */
+body[data-theme] .hero-photo-wrap::before {
+  content: ""; display: block !important;
+  position: absolute; z-index: 4; top: 0; left: 0;
+  width: 88px; height: 4px;
+  background: linear-gradient(90deg,#ff981b,#ff5733);
+  pointer-events: none;
+}
+body[data-theme] .hero-live-tag i,
+body[data-theme] .photo-live-dot { background: var(--akaora-orange) !important; }
+body[data-theme] .feature-strip .feature-icon,
+body[data-theme] .feature-strip .feature-icon svg,
+body[data-theme] .soft-list svg { color: var(--sig-accent) !important; stroke: var(--sig-accent) !important; }
+body[data-theme] .feature-strip strong,
+body[data-theme] .info-panel h2,
+body[data-theme] .how-panel h2,
+body[data-theme] .steps-row article strong,
+body[data-theme] .soft-list li,
+body[data-theme] .home-footer strong { color: var(--sig-text) !important; }
+body[data-theme] .feature-strip small,
+body[data-theme] .info-panel p,
+body[data-theme] .how-panel p,
+body[data-theme] .steps-row article small,
+body[data-theme] .how-panel .flow-subhead,
+body[data-theme] .home-footer span { color: var(--sig-muted) !important; }
+body[data-theme] .steps-row article span,
+body[data-theme] .section-no,
+body[data-theme] .info-panel .section-no { color: var(--sig-accent) !important; }
+body[data-theme] .company-logo-frame { border: 0 !important; }
+body[data-theme="dark"] .company-logo-frame {
+  background: #fffdfa !important; padding: 8px 11px !important;
+  border-radius: 4px !important;
+}
+body[data-theme] .footer-company-identity b { color: var(--sig-accent) !important; }
+
+/* Create/join: underlined fields and a room-code strip rather than boxes. */
+body[data-theme] .form-card,
+body[data-theme] .generated-room,
+body[data-theme] .form-heading { color: var(--sig-text) !important; }
+body[data-theme] .form-heading,
+body[data-theme] .generated-room,
+body[data-theme] .media-options,
+body[data-theme] .form-product-note,
+body[data-theme] .field-group input { border-color: var(--sig-line) !important; }
+body[data-theme] .form-heading h2 { color: var(--sig-text) !important; }
+body[data-theme] .form-heading h2 em,
+body[data-theme] .form-heading .eyebrow,
+body[data-theme] .generated-room strong,
+body[data-theme] .form-product-note strong { color: var(--sig-accent) !important; }
+body[data-theme] .form-heading p,
+body[data-theme] .generated-room > span,
+body[data-theme] .form-product-note,
+body[data-theme] .form-card .permission-title { color: var(--sig-muted) !important; }
+body[data-theme] .field-group label { color: var(--sig-text) !important; }
+body[data-theme] .form-card input,
+body[data-theme] .form-card input:focus,
+body[data-theme] .form-card input:focus-visible {
+  color: var(--sig-text) !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--sig-line) !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+body[data-theme] .form-card input:focus { border-bottom-color: var(--sig-accent) !important; }
+body[data-theme] .form-card input::placeholder { color: var(--sig-quiet) !important; opacity: 1 !important; }
+body[data-theme] .mini-btn,
+body[data-theme] .toggle-pill,
+body[data-theme] .room-option,
+body[data-theme] .media-options button { color: var(--sig-text) !important; }
+body[data-theme] .generated-room .mini-btn {
+  background: transparent !important;
+  color: var(--sig-text) !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--sig-line) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+body[data-theme] .toggle-pill { background: transparent !important; border: 0 !important; box-shadow: none !important; }
+body[data-theme] .toggle-pill[data-enabled="true"] { background: rgba(255,152,27,.08) !important; color: var(--sig-accent) !important; }
+body[data-theme] .toggle-pill[data-enabled="false"] { background: transparent !important; color: var(--sig-muted) !important; }
+body[data-theme] .toggle-pill svg { stroke: currentColor !important; }
+body[data-theme] .form-view .firebase-setup-error { background: transparent !important; color: var(--sig-text) !important; border: 0 !important; border-left: 2px solid #df5147 !important; border-radius: 0 !important; }
+body[data-theme] .form-view .firebase-setup-error a { color: var(--sig-accent) !important; }
+
+/* Meeting: video is always dark, navigation adjusts with selected theme. */
+body[data-theme="dark"][data-view="meeting"] {
+  --meet-chrome-bg: #06142d;
+  --meet-chrome-text: #f7f5f0;
+  --meet-chrome-muted: #b0c0d5;
+  --meet-chrome-line: #284061;
+  --meet-chrome-hover: #102d58;
+  --meet-live: #4bd0a5;
+}
+body[data-theme="light"][data-view="meeting"] {
+  --meet-chrome-bg: #f7f5f0;
+  --meet-chrome-text: #071b43;
+  --meet-chrome-muted: #4b5e78;
+  --meet-chrome-line: #d5dae4;
+  --meet-chrome-hover: #e9edf3;
+  --meet-live: #24896a;
+}
+body[data-theme][data-view="meeting"] { background: #06142d !important; }
+body[data-theme][data-view="meeting"] .meeting-top {
+  background: var(--meet-chrome-bg) !important;
+  border-bottom: 1px solid var(--meet-chrome-line) !important;
+}
+body[data-view="meeting"] .meeting-top .meeting-clock,
+body[data-view="meeting"] .meeting-top .room-meta strong,
+body[data-view="meeting"] .meeting-top .share-actions button,
+body[data-view="meeting"] .meeting-top .share-actions button span {
+  color: var(--meet-chrome-text) !important;
+}
+body[data-view="meeting"] .meeting-top .room-meta span,
+body[data-view="meeting"] .meeting-top .room-meta small,
+body[data-view="meeting"] .meeting-top .meeting-live-chip { color: var(--meet-chrome-muted) !important; }
+body[data-view="meeting"] .meeting-top .meeting-live-chip i { background: var(--meet-live) !important; }
+body[data-view="meeting"] .meeting-top .share-actions button {
+  border-color: var(--meet-chrome-line) !important;
+  background: transparent !important;
+}
+body[data-view="meeting"] .meeting-top .share-actions button:hover { background: var(--meet-chrome-hover) !important; }
+body[data-view="meeting"] .meeting-top .share-actions button svg,
+body[data-view="meeting"] .meeting-top .share-actions button svg path,
+body[data-view="meeting"] .meeting-top .share-actions button svg circle {
+  color: var(--meet-chrome-text) !important; stroke: currentColor !important;
+}
+body[data-theme][data-view="meeting"] .stage { background: #06142d !important; }
+body[data-theme][data-view="meeting"] .stage::before { color: #8fa8c7 !important; }
+body[data-theme][data-view="meeting"] .video-tile {
+  background: radial-gradient(circle at 50% 42%,#15335c 0%,#0b2042 55%,#07142c 100%) !important;
+  border-radius: 0 !important;
+  border: 0 !important;
+}
+body[data-view="meeting"] .stage .avatar-circle {
+  background: #ffab54 !important; color: #071b43 !important;
+  font-weight: 700 !important;
+}
+body[data-view="meeting"] .stage .avatar-placeholder p { color: #f7f5f0 !important; }
+body[data-view="meeting"] .stage .tile-badge {
+  color: #e8f0fb !important;
+  background: rgba(5,19,41,.78) !important;
+  border-radius: 3px !important;
+}
+body[data-view="meeting"] .stage .tile-pin,
+body[data-view="meeting"] .stage .tile-fullscreen-action {
+  color: #f7f5f0 !important;
+  background: rgba(5,19,41,.76) !important;
+  border-radius: 5px !important;
+}
+body[data-view="meeting"] .stage .tile-pin:hover,
+body[data-view="meeting"] .stage .tile-fullscreen-action:hover { background: rgba(255,152,27,.21) !important; }
+body[data-theme][data-view="meeting"] .call-layout .stage .call-controls,
+body.screen-share-mode[data-view="meeting"] .call-layout .stage .call-controls {
+  color: #f7f5f0 !important;
+  background: #071b43 !important;
+  border-top: 1px solid #294163 !important;
+}
+body[data-theme][data-view="meeting"] .call-layout .stage .call-controls > button.control-btn {
+  color: #e9eff9 !important;
+  background: transparent !important;
+  border-radius: 6px !important;
+}
+body[data-theme][data-view="meeting"] .call-layout .stage .call-controls > button.control-btn:hover {
+  background: #133362 !important;
+  color: #ffffff !important;
+}
+body[data-theme][data-view="meeting"] .call-layout .stage .call-controls > button.control-btn.on {
+  background: rgba(255,152,27,.13) !important;
+  color: #ffbc66 !important;
+}
+body[data-theme][data-view="meeting"] .call-layout .stage .call-controls > button.control-btn.off {
+  background: rgba(228,109,86,.10) !important;
+  color: #ffb0a3 !important;
+}
+body[data-theme][data-view="meeting"] .call-layout .stage .call-controls > button#hangupBtn {
+  color: #ffffff !important;
+  background: #d94d43 !important;
+  border-radius: 6px !important;
+}
+body[data-theme][data-view="meeting"] .call-layout .stage .call-controls > button#hangupBtn:hover {
+  background: #f05b4d !important;
+}
+body[data-theme][data-view="meeting"] .call-layout .stage .call-controls > button.control-btn:focus-visible {
+  outline: 2px solid #ff981b !important;
+  outline-offset: 2px !important;
+}
+
+/* Side sheets: flat, navy-based, no material cards. */
+body[data-view="meeting"] :is(.chat-drawer,.more-panel,.side-panel,.device-panel,.invite-card,.waiting-room-card,.reaction-panel) {
+  background: #0a2146 !important;
+  color: #f7f5f0 !important;
+  border-color: #294163 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+body[data-view="meeting"] :is(.chat-head,.more-head,.side-panel-head,.device-head),
+body[data-view="meeting"] :is(.more-action-btn,.host-control-btn,.view-mode-option) {
+  border-color: #294163 !important;
+}
+body[data-view="meeting"] :is(.chat-head strong,.more-head strong,.side-panel-head strong,.device-head strong) { color: #f7f5f0 !important; }
+body[data-view="meeting"] :is(.more-action-btn,.host-control-btn,.view-mode-option) {
+  background: transparent !important; color: #f7f5f0 !important;
+}
+body[data-view="meeting"] :is(.more-action-btn,.host-control-btn,.view-mode-option):hover {
+  background: #143460 !important;
+}
+body[data-view="meeting"] .view-mode-option[aria-pressed="true"] { color: #ffad45 !important; border-bottom-color: #ff981b !important; }
+body[data-view="meeting"] :is(.chat-input-wrap,.notes-input,.emoji-row,.invite-link-box) {
+  background: #071b43 !important;
+  color: #f7f5f0 !important;
+  border-color: #294163 !important;
+}
+body[data-view="meeting"] :is(.chat-input-wrap input,.notes-input textarea,.chat-input-wrap textarea) {
+  background: transparent !important; color: #f7f5f0 !important;
+}
+body[data-view="meeting"] :is(.send-btn,.emoji-btn,.icon-only) { color: #ffad45 !important; }
+body[data-view="meeting"] .chat-message.mine { background: rgba(255,152,27,.12) !important; }
+body[data-view="meeting"] .chat-badge { color: #071b43 !important; background: #ff981b !important; }
+
+/* Feedback dialog: flat ivory sheet with brand stripe; highly readable in either theme. */
+body[data-theme] .modal-backdrop { background: rgba(2,9,22,.78) !important; }
+body[data-theme] .feedback-modal {
+  background: #f7f5f0 !important; color: #071b43 !important;
+  border: 0 !important; border-top: 4px solid #ff981b !important;
+  border-radius: 0 !important; box-shadow: none !important;
+}
+body[data-theme] .feedback-modal h3,
+body[data-theme] .feedback-modal .meeting-summary-list strong { color: #071b43 !important; }
+body[data-theme] .feedback-eyebrow,
+body[data-theme] .feedback-brand-note strong { color: #ad481c !important; }
+body[data-theme] .feedback-modal .feedback-text,
+body[data-theme] .feedback-modal .meeting-summary-list span { color: #52637b !important; }
+body[data-theme] .feedback-modal textarea { color: #071b43 !important; border-bottom-color: #cbd3de !important; }
+body[data-theme] .feedback-modal .primary-action { color: #071b43 !important; background: #ff981b !important; border-color: #ff981b !important; border-radius: 6px !important; }
+body[data-theme] .feedback-modal .mini-btn { color: #071b43 !important; border-bottom-color: #cbd3de !important; }
+body[data-theme] .feedback-rating .rating-btn { color: #ad481c !important; }
+body[data-theme] .toast { color: #071b43 !important; background: #fffdfa !important; border-color: #ffbd65 !important; }
+
+@media (max-width: 1050px) {
+  body[data-theme] .hero-copy h1 { font-size: clamp(3.3rem,8vw,5.8rem) !important; }
+}
+@media (max-width: 720px) {
+  body[data-theme] .hero-copy h1 { font-size: clamp(2.8rem,10vw,4.65rem) !important; }
+  body[data-theme] .hero-photo-wrap::before { width: 55px !important; }
+  body[data-theme] .hero-product-credit { margin-top: 24px !important; }
+  body[data-view="meeting"] .meeting-top .room-meta strong { color: var(--meet-chrome-text) !important; }
+  body[data-theme][data-view="meeting"] .call-layout .stage .call-controls {
+    background: #071b43 !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-theme] :is(button,a) { transition-duration: .01ms !important; }
+}
+
+/* Final high-specificity reconciliation with legacy polished stylesheet. */
+body[data-theme="dark"]:not([data-view="meeting"]) .topbar {
+  background: #06142d !important;
+  color: #f7f5f0 !important;
+}
+body[data-theme="light"]:not([data-view="meeting"]) .topbar {
+  background: #f7f5f0 !important;
+  color: #071b43 !important;
+}
+body[data-theme] .hero-card .hero-copy h1,
+body[data-theme] .form-card .form-heading h2,
+body[data-theme] .home-panels .info-panel h2,
+body[data-theme] .how-panel h2,
+body[data-theme] .feedback-modal h3 {
+  font-family: var(--akaora-font-display) !important;
+  font-weight: 400 !important;
+}
+body[data-theme] .hero-card .hero-copy h1 { line-height: 1.17 !important; }
+body[data-theme][data-view="meeting"] .call-layout .video-grid .video-tile,
+body[data-theme][data-view="meeting"] .call-layout .video-grid .video-tile.local-tile,
+body[data-theme][data-view="meeting"] .call-layout .video-grid .video-tile.remote-tile {
+  background: radial-gradient(circle at 50% 43%,#19385f 0%,#10294c 50%,#091b35 100%) !important;
+}
+body[data-view="meeting"] #chatDrawer,
+body[data-view="meeting"] #morePanel,
+body[data-view="meeting"] #participantsPanel,
+body[data-view="meeting"] #notesPanel,
+body[data-view="meeting"] #devicePanel,
+body[data-view="meeting"] #inviteCard,
+body[data-view="meeting"] #waitingRoomCard {
+  background: #0a2146 !important;
+  border-color: #294163 !important;
+  color: #f7f5f0 !important;
+}
+body[data-view="meeting"] #chatDrawer .chat-head,
+body[data-view="meeting"] #chatDrawer .chat-head strong,
+body[data-view="meeting"] #inviteCard .invite-card-title { color: #f7f5f0 !important; }
+body[data-view="meeting"] #chatDrawer .chat-head { border-bottom-color: #294163 !important; }
+body[data-view="meeting"] #chatDrawer .chat-head small,
+body[data-view="meeting"] #inviteCard .invite-card-text { color: #b0c2dc !important; }
+body[data-view="meeting"] #inviteCard .invite-card-note,
+body[data-view="meeting"] #chatDrawer .chat-input-wrap { background: #071b43 !important; border-color: #294163 !important; }
+body[data-view="meeting"] #toast {
+  background: #0d2d65 !important; color: #f7f5f0 !important;
+  border-color: #426080 !important;
+}
+body[data-view="meeting"] #toast.error { background: #692b37 !important; color: #fff7f5 !important; }

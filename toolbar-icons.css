@@ -1,0 +1,47 @@
+/* AKAORA MEET - focused SVG icon refresh. All existing handlers and states remain unchanged. */
+#meetingView .call-controls > button.control-btn > svg {
+  width: 25px !important;
+  height: 25px !important;
+  min-width: 25px;
+  min-height: 25px;
+  stroke: currentColor !important;
+  stroke-width: 2 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  fill: none !important;
+  flex-shrink: 0;
+  filter: none !important;
+}
+#meetingView .call-controls > button.control-btn > svg * {
+  stroke: inherit;
+  stroke-width: inherit;
+  stroke-linecap: inherit;
+  stroke-linejoin: inherit;
+  fill: none;
+}
+#meetingView .call-controls > #hangupBtn svg {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px;
+  min-height: 28px;
+}
+#meetingView .call-controls > button.control-btn:focus-visible {
+  outline: 2px solid #ff9c27 !important;
+  outline-offset: 2px !important;
+}
+#meetingView .call-controls > button.control-btn.off svg { color: #ffb5ae; }
+#meetingView .call-controls > #hangupBtn svg { color: #fff; }
+@media (max-width: 480px) {
+  #meetingView .call-controls > button.control-btn > svg {
+    width: 21px !important;
+    height: 21px !important;
+    min-width: 21px;
+    min-height: 21px;
+  }
+  #meetingView .call-controls > #hangupBtn svg {
+    width: 23px !important;
+    height: 23px !important;
+    min-width: 23px;
+    min-height: 23px;
+  }
+}

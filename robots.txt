@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /*?room=
+Disallow: /*&room=
+Sitemap: https://meet.akaoratechnologies.in/sitemap.xml

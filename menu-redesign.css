@@ -1,0 +1,51 @@
+
+.menu-mini-btn{display:inline-flex;align-items:center;gap:10px}
+.menu-mini-btn span{white-space:nowrap}
+.call-controls{display:flex;gap:12px;align-items:flex-end;justify-content:center;padding:16px 18px 18px}
+.control-btn{min-width:70px;min-height:72px;padding:12px 10px;border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:1px solid rgba(255,255,255,.1);background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.05));backdrop-filter:blur(18px);box-shadow:0 12px 30px rgba(2,8,24,.18)}
+.control-btn svg{width:22px;height:22px;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.control-label{display:block;font-size:.72rem;line-height:1;font-weight:700;letter-spacing:.02em;color:var(--text-secondary)}
+.control-btn.on .control-label,.control-btn:hover .control-label,.control-btn:focus-visible .control-label{color:var(--text-primary)}
+.control-btn.danger .control-label{color:#fff7f5}
+.control-btn.off{background:linear-gradient(180deg,rgba(255,112,94,.18),rgba(255,112,94,.09));}
+.control-btn.on:not(.danger){background:linear-gradient(180deg,rgba(255,152,27,.24),rgba(255,87,51,.16));border-color:rgba(255,160,40,.32)}
+.control-btn.chat-control,.control-btn.more-control,.control-btn.device-control{background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.06))}
+.control-btn.danger{background:linear-gradient(180deg,rgba(246,96,81,.95),rgba(227,80,80,.85));}
+.more-panel{padding:18px;border-radius:28px;overflow:hidden}
+.more-panel-hero{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 18px;margin-bottom:16px;border-radius:22px;background:linear-gradient(135deg,rgba(8,23,58,.86),rgba(255,152,27,.12));border:1px solid rgba(255,255,255,.08)}
+.more-panel-brand{display:flex;align-items:center;gap:12px}
+.more-panel-brand img{width:42px;height:42px;border-radius:14px;background:rgba(255,255,255,.08);padding:6px}
+.more-panel-brand strong{display:block;font-size:1rem}
+.more-panel-brand small{display:block;color:var(--text-secondary)}
+.more-panel-company{height:34px;width:auto;max-width:44%}
+.more-action-grid{display:grid;grid-template-columns:1fr;gap:12px}
+.more-action-btn{display:grid;grid-template-columns:48px 1fr;gap:14px;align-items:center;padding:14px 16px;border-radius:20px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));text-align:left}
+.more-action-icon{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(255,152,27,.2),rgba(255,87,51,.1));border:1px solid rgba(255,255,255,.08)}
+.more-action-icon svg{width:22px;height:22px;stroke:var(--brand-orange);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.more-action-copy{display:grid;gap:2px}
+.more-action-copy b{font-size:.98rem;font-weight:700;color:var(--text-primary)}
+.more-action-copy small{color:var(--text-secondary);font-size:.82rem;line-height:1.35}
+.share-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.share-actions .mini-btn{display:inline-flex;align-items:center;gap:10px;padding:12px 16px;border-radius:18px}
+.share-actions .mini-btn svg{width:18px;height:18px;stroke-width:1.8}
+.presentation-hud{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.presentation-pill,.presentation-stop-btn{min-height:52px}
+@media (max-width: 1024px){
+  .call-controls{gap:10px}
+  .control-btn{min-width:64px}
+}
+@media (max-width: 720px){
+  .control-btn{min-width:unset;width:calc((100vw - 56px)/9);max-width:74px;min-height:64px;padding:10px 6px;gap:6px;border-radius:18px}
+  .control-btn svg{width:20px;height:20px}
+  .control-label{font-size:.64rem}
+  .share-actions .mini-btn span{display:none}
+  .share-actions .mini-btn{padding:12px}
+  .more-panel-company{display:none}
+}
+@media (max-width: 480px){
+  .control-label{display:none}
+  .call-controls{padding:12px 10px 14px;gap:8px}
+  .control-btn{width:calc((100vw - 36px)/9);min-height:58px;padding:8px 4px;border-radius:16px}
+  .more-action-btn{grid-template-columns:42px 1fr;padding:12px}
+  .more-action-icon{width:42px;height:42px;border-radius:14px}
+}

@@ -1,0 +1,554 @@
+/* Akaora Meet — final interface stability layer, 2026-11-21.
+   Corrects legacy cascade conflicts without changing Firebase/WebRTC behavior.
+   Dark, accessible utility chrome; flat editorial home and the existing glass style. */
+:root {
+  --am-ink: #f4f7ff;
+  --am-muted: #c2d1e8;
+  --am-stroke: rgba(189, 214, 255, .22);
+  --am-glass: rgba(16, 37, 69, .78);
+  --am-orange: #ff9e2c;
+}
+
+/* Public pages: a consistent branded header and no vacant dark gap. */
+body[data-theme="dark"]:not([data-view="meeting"]) .topbar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 16px clamp(16px, 2vw, 32px) !important;
+  min-height: 75px !important;
+  height: auto !important;
+  background: rgba(7, 21, 46, .82) !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--am-stroke) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(18px) saturate(155%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(155%) !important;
+}
+body[data-theme="dark"]:not([data-view="meeting"]) .topbar .brand {
+  display: inline-flex !important;
+  align-items: center !important;
+  min-width: 0 !important;
+  gap: 12px !important;
+}
+body[data-theme="dark"] .topbar .brand :is(strong,.brand-meet) { color: var(--am-ink) !important; }
+body[data-theme="dark"] .topbar .brand small { color: #b8c7dc !important; }
+body[data-theme="dark"] .topbar .nav-actions { margin-left: auto !important; }
+body[data-theme="dark"] .topbar .nav-actions :is(.status-chip,.theme-switch,.theme-switch span) { color: #ecf3ff !important; }
+body[data-theme="dark"] .topbar .nav-actions .theme-switch svg { stroke: #ecf3ff !important; }
+body[data-theme="dark"] .topbar .theme-switch { background: rgba(175, 209, 255, .08) !important; border: 1px solid rgba(197, 221, 255, .19) !important; border-radius: 11px !important; }
+body[data-theme="dark"] .topbar .theme-switch:hover { background: rgba(175, 209, 255, .17) !important; }
+body[data-theme="dark"]:not([data-view="meeting"]) .home-view { margin-top: 0 !important; }
+
+/* Every meeting mode keeps the same high-contrast header regardless of the site theme. */
+body[data-theme][data-view="meeting"] #meetingView .meeting-top {
+  display: grid !important;
+  grid-template-columns: auto auto minmax(175px, 1fr) auto !important;
+  align-items: center !important;
+  gap: 8px 15px !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 74px !important;
+  max-height: none !important;
+  padding: 12px 18px !important;
+  background: linear-gradient(120deg, rgba(18, 44, 82, .94), rgba(7, 22, 46, .91)) !important;
+  border: 1px solid var(--am-stroke) !important;
+  border-radius: 15px !important;
+  box-shadow: 0 10px 32px rgba(0, 4, 19, .20), inset 0 1px rgba(255,255,255,.09) !important;
+  overflow: visible !important;
+  color: var(--am-ink) !important;
+  backdrop-filter: blur(18px) saturate(150%) !important;
+}
+body[data-theme][data-view="meeting"] #meetingView .meeting-top .meeting-live-chip {
+  grid-column: 1 !important;
+  color: #d5e3f6 !important;
+  white-space: nowrap !important;
+}
+body[data-theme][data-view="meeting"] #meetingView .meeting-top .meeting-hud-left {
+  grid-column: 2 !important;
+  color: #eef4ff !important;
+  border-right: 1px solid var(--am-stroke) !important;
+  padding-right: 12px !important;
+  white-space: nowrap !important;
+}
+body[data-theme][data-view="meeting"] #meetingView .meeting-top .meeting-clock,
+body[data-theme][data-view="meeting"] #meetingView .meeting-top .meeting-clock * { color: #eef4ff !important; }
+body[data-theme][data-view="meeting"] #meetingView .meeting-top .room-meta {
+  grid-column: 3 !important;
+  display: flex !important;
+  align-items: center !important;
+  flex: initial !important;
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  gap: 11px !important;
+}
+body[data-theme][data-view="meeting"] #meetingView .room-meta > div { min-width: 0 !important; }
+body[data-theme][data-view="meeting"] #meetingView .room-meta strong {
+  color: #ffffff !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 1.02rem !important;
+}
+body[data-theme][data-view="meeting"] #meetingView .room-meta :is(span, small, small b, .host-meta) {
+  color: #c9d8ef !important;
+  opacity: 1 !important;
+}
+body[data-theme][data-view="meeting"] #meetingView .room-meta img {
+  flex: 0 0 44px !important;
+  width: 44px !important;
+  height: 44px !important;
+  object-fit: contain !important;
+  border-radius: 12px !important;
+}
+body[data-theme][data-view="meeting"] #meetingView .meeting-top .share-actions {
+  grid-column: 4 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  flex: initial !important;
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  gap: 7px !important;
+  overflow: visible !important;
+}
+body[data-theme][data-view="meeting"] #meetingView .meeting-top .share-actions > :is(button, .mini-btn, .theme-switch) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto !important;
+  min-height: 40px !important;
+  height: 40px !important;
+  margin: 0 !important;
+  padding: 0 12px !important;
+  gap: 8px !important;
+  color: var(--am-ink) !important;
+  background: rgba(173, 204, 246, .09) !important;
+  border: 1px solid rgba(194, 216, 255, .19) !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  font-weight: 650 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+body[data-theme][data-view="meeting"] #meetingView .meeting-top .share-actions > :is(button, .mini-btn, .theme-switch):hover {
+  color: #fff !important;
+  background: rgba(190, 220, 255, .18) !important;
+  border-color: rgba(214, 231, 255, .38) !important;
+}
+body[data-theme][data-view="meeting"] #meetingView .share-actions :is(span, svg, path) {
+  color: inherit !important;
+  opacity: 1 !important;
+}
+body[data-theme][data-view="meeting"] #meetingView .share-actions svg {
+  width: 17px !important;
+  height: 17px !important;
+  stroke: currentColor !important;
+  fill: none !important;
+}
+
+/* Presentation controls always form a proper second header row, never overflow. */
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .meeting-top { row-gap: 10px !important; }
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .presentation-hud:not([hidden]) {
+  grid-column: 1 / -1 !important;
+  grid-row: 2 !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  justify-self: stretch !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  gap: 8px !important;
+  overflow: visible !important;
+}
+body[data-theme][data-view="meeting"] #meetingView .presentation-hud .presentation-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  height: 41px !important;
+  min-height: 41px !important;
+  min-width: 0 !important;
+  max-width: min(340px, 70vw) !important;
+  flex: 0 1 auto !important;
+  padding: 0 13px !important;
+  color: #f4f7ff !important;
+  background: rgba(210, 227, 255, .075) !important;
+  border: 1px solid rgba(204, 224, 255, .21) !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+body[data-theme][data-view="meeting"] #meetingView .presentation-hud .presentation-pill :is(svg,span) {
+  color: #f4f7ff !important;
+  opacity: 1 !important;
+}
+body[data-theme][data-view="meeting"] #meetingView #presentationAudioPill {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  min-width: 202px !important;
+  max-width: 235px !important;
+  padding: 0 10px 0 14px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+}
+body[data-theme][data-view="meeting"] #meetingView #presentationAudioPill .presentation-audio-label { font-size: .81rem !important; line-height: 1.2 !important; }
+body[data-theme][data-view="meeting"] #meetingView #presentationAudioPill:disabled { opacity: .74 !important; cursor: default !important; }
+body[data-theme][data-view="meeting"] #meetingView #presentationAudioPill .audio-toggle {
+  display: block !important;
+  position: relative !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  flex: 0 0 42px !important;
+  width: 42px !important;
+  height: 24px !important;
+  min-width: 42px !important;
+  max-width: 42px !important;
+  min-height: 24px !important;
+  max-height: 24px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 1px solid rgba(224, 232, 255, .3) !important;
+  border-radius: 999px !important;
+  background: rgba(160, 180, 212, .23) !important;
+  transform: none !important;
+}
+body[data-theme][data-view="meeting"] #meetingView #presentationAudioPill .audio-toggle.on { background: #ffab3f !important; border-color: #ffbf61 !important; }
+body[data-theme][data-view="meeting"] #meetingView #presentationAudioPill .audio-toggle.off { background: #647691 !important; }
+body[data-theme][data-view="meeting"] #meetingView #presentationAudioPill .audio-toggle > span {
+  display: block !important;
+  box-sizing: border-box !important;
+  position: absolute !important;
+  top: 2px !important;
+  left: 2px !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #fff !important;
+  transform: none !important;
+  translate: none !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,.3) !important;
+}
+body[data-theme][data-view="meeting"] #meetingView #presentationAudioPill .audio-toggle.on > span { left: 20px !important; transform: none !important; }
+body[data-theme][data-view="meeting"] #meetingView #stopPresentingBtn {
+  min-width: 0 !important;
+  min-height: 41px !important;
+  height: 41px !important;
+  margin: 0 !important;
+  padding: 0 16px !important;
+  color: #07162e !important;
+  background: linear-gradient(120deg,#ffb549,#ff9821) !important;
+  border: 1px solid rgba(255,193,105,.65) !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  font-weight: 800 !important;
+}
+body[data-theme][data-view="meeting"] #meetingView #stopPresentingBtn[hidden] { display: none !important; }
+
+/* A non-destructive view preference for narrow portrait presentations.
+   Fit shows every pixel, Fill zooms with crop; never alters streamed media. */
+body[data-view="meeting"] #meetingView .screen-tile .screen-fit-btn {
+  position: absolute !important;
+  z-index: 48 !important;
+  right: 11px !important;
+  bottom: 11px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  width: auto !important;
+  height: 33px !important;
+  min-width: 74px !important;
+  padding: 0 10px !important;
+  border: 1px solid rgba(214,230,255,.26) !important;
+  border-radius: 9px !important;
+  background: rgba(8, 22, 43, .83) !important;
+  color: #edf4ff !important;
+  font: 650 .76rem/1 system-ui, sans-serif !important;
+  cursor: pointer !important;
+  backdrop-filter: blur(12px) !important;
+}
+body[data-view="meeting"] #meetingView .screen-tile .screen-fit-btn[hidden] { display:none !important; }
+body[data-view="meeting"] #meetingView .screen-tile .screen-fit-btn svg { width: 15px !important; height: 15px !important; stroke: currentColor !important; fill: none !important; stroke-width: 1.8 !important; }
+body[data-view="meeting"] #meetingView .screen-tile .screen-fit-btn:hover,
+body[data-view="meeting"] #meetingView .screen-tile .screen-fit-btn[aria-pressed="true"] { background: rgba(255, 153, 31, .23) !important; border-color: rgba(255, 173, 66, .65) !important; }
+body[data-theme][data-view="meeting"] #meetingView .call-layout .screen-tile.screen-fill video { object-fit: cover !important; }
+body[data-theme][data-view="meeting"] #meetingView .call-layout .screen-tile:not(.screen-fill) video { object-fit: contain !important; }
+
+/* Responsive meeting chrome: room and actions remain inside viewport. */
+@media (max-width: 1150px) {
+  body[data-theme][data-view="meeting"] #meetingView .meeting-top { grid-template-columns: auto minmax(110px, 1fr) auto !important; }
+  body[data-theme][data-view="meeting"] #meetingView .meeting-top .meeting-live-chip { display:none !important; }
+  body[data-theme][data-view="meeting"] #meetingView .meeting-top .meeting-hud-left { grid-column:1 !important; }
+  body[data-theme][data-view="meeting"] #meetingView .meeting-top .room-meta { grid-column:2 !important; }
+  body[data-theme][data-view="meeting"] #meetingView .meeting-top .share-actions { grid-column:3 !important; }
+}
+@media (max-width: 760px) {
+  body[data-theme][data-view="meeting"] #meetingView .meeting-top {
+    display: grid !important;
+    grid-template-columns: minmax(0,1fr) auto !important;
+    min-height: 0 !important;
+    padding: 10px !important;
+    gap: 7px !important;
+    border-radius: 13px !important;
+  }
+  body[data-theme][data-view="meeting"] #meetingView .meeting-top .meeting-live-chip,
+  body[data-theme][data-view="meeting"] #meetingView .meeting-top .meeting-hud-left { display:none !important; }
+  body[data-theme][data-view="meeting"] #meetingView .meeting-top .room-meta {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    gap: 8px !important;
+  }
+  body[data-theme][data-view="meeting"] #meetingView .meeting-top .room-meta img { flex: 0 0 34px !important; width: 34px !important; height: 34px !important; }
+  body[data-theme][data-view="meeting"] #meetingView .room-meta strong { font-size: .86rem !important; }
+  body[data-theme][data-view="meeting"] #meetingView .meeting-top .share-actions {
+    grid-column:2 !important;
+    grid-row:1 !important;
+    display:flex !important;
+    justify-content:flex-end !important;
+    max-width:100% !important;
+    margin:0 !important;
+    gap:5px !important;
+    overflow:visible !important;
+  }
+  body[data-theme][data-view="meeting"] #meetingView .meeting-top .share-actions > :is(button,.mini-btn,.theme-switch) {
+    min-height: 34px !important;
+    height: 34px !important;
+    width: 36px !important;
+    padding: 0 !important;
+  }
+  body[data-theme][data-view="meeting"] #meetingView .meeting-top .share-actions :is(button,.mini-btn,.theme-switch) > span { display:none !important; }
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .presentation-hud:not([hidden]) {
+    grid-column: 1 / -1 !important;
+    grid-row:2 !important;
+    flex-wrap:wrap !important;
+    width: 100% !important;
+    max-width:100% !important;
+    padding: 0 !important;
+    gap: 6px !important;
+    overflow: visible !important;
+  }
+  body[data-theme][data-view="meeting"] #meetingView .presentation-hud #presenterPill { max-width:100% !important; flex: 1 1 100% !important; }
+  body[data-theme][data-view="meeting"] #meetingView #presentationAudioPill { min-width: 0 !important; max-width: none !important; flex: 1 1 155px !important; }
+  body[data-theme][data-view="meeting"] #meetingView #stopPresentingBtn { flex: 0 0 auto !important; padding: 0 10px !important; }
+}
+@media (max-width: 370px) {
+  body[data-theme][data-view="meeting"] #meetingView .room-meta :is(.host-meta,span) { font-size: .53rem !important; }
+  body[data-theme][data-view="meeting"] #meetingView #presentationAudioPill .presentation-audio-label { font-size: .71rem !important; }
+  body[data-theme][data-view="meeting"] #meetingView #stopPresentingBtn { font-size: .68rem !important; }
+  body[data-theme][data-view="meeting"] #meetingView .screen-tile .screen-fit-btn { min-width:62px !important; }
+}
+
+/* Screen-sharing legacy rules carried higher selector specificity than the
+   regular meeting header. Re-establish the grid explicitly in this state. */
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .meeting-top {
+  display: grid !important;
+  grid-template-columns: auto auto minmax(175px,1fr) auto !important;
+  grid-auto-rows: auto !important;
+  align-items: center !important;
+  gap: 8px 15px !important;
+}
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .meeting-top .room-meta { grid-column: 3 !important; max-width: none !important; }
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .meeting-top .share-actions { grid-column: 4 !important; }
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .presentation-hud:not([hidden]) {
+  grid-column: 1 / -1 !important;
+  grid-row: 2 !important;
+  display: flex !important;
+  flex: none !important;
+  justify-self: stretch !important;
+  flex-wrap: wrap !important;
+  order: initial !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+
+/* Screen video is always the primary surface. Participant previews float above
+   its right edge on small screens and use a dedicated rail on large screens. */
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .stage > .video-grid {
+  position: absolute !important;
+  display: block !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: #030b1b !important;
+}
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .video-grid > .screen-tile:not([hidden]),
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .video-grid > .screen-tile:not([hidden]).layout-hidden {
+  position: absolute !important;
+  display: block !important;
+  top: 10px !important;
+  right: 220px !important;
+  bottom: 10px !important;
+  left: 10px !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+  overflow: hidden !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(197,220,255,.18) !important;
+  background: #020817 !important;
+  z-index: 1 !important;
+}
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .video-grid > .video-tile[data-preview-index]:not([hidden]):not(.layout-hidden) {
+  position: absolute !important;
+  display: block !important;
+  z-index: 6 !important;
+  top: auto !important;
+  left: auto !important;
+  right: 10px !important;
+  width: 198px !important;
+  height: 111px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(204,227,255,.2) !important;
+  overflow: hidden !important;
+}
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .video-tile[data-preview-index="0"] { bottom: 10px !important; }
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .video-tile[data-preview-index="1"] { bottom: 131px !important; }
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .video-tile[data-preview-index="2"] { bottom: 252px !important; }
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .video-tile[data-preview-index="3"] { bottom: 373px !important; }
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .video-tile[data-preview-index="4"] { bottom: 494px !important; }
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .video-tile[data-preview-index="5"] { bottom: 615px !important; }
+@media (max-width: 1150px) {
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .meeting-top { grid-template-columns: auto minmax(110px,1fr) auto !important; }
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .meeting-top .meeting-hud-left { grid-column: 1 !important; }
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .meeting-top .room-meta { grid-column: 2 !important; }
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .meeting-top .share-actions { grid-column: 3 !important; }
+}
+@media (max-width: 760px) {
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .meeting-top {
+    display: grid !important;
+    grid-template-columns: minmax(0,1fr) auto !important;
+    padding: 10px !important;
+    gap: 7px !important;
+  }
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .meeting-top .meeting-hud-left,
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .meeting-top .meeting-live-chip { display:none !important; }
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .meeting-top .room-meta {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    flex: initial !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .meeting-top .share-actions {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    justify-self: end !important;
+    flex: initial !important;
+    max-width: 100% !important;
+    width: auto !important;
+    order: initial !important;
+    margin: 0 !important;
+    gap: 5px !important;
+    overflow: visible !important;
+  }
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .presentation-hud:not([hidden]) {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+    display: flex !important;
+    flex: none !important;
+    flex-wrap: wrap !important;
+    align-self: start !important;
+    justify-self: stretch !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    order: initial !important;
+    gap: 6px !important;
+    overflow: visible !important;
+  }
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .presentation-hud #presenterPill {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView #presentationAudioPill {
+    flex: 1 1 175px !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView #stopPresentingBtn {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: 0 10px !important;
+  }
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .video-grid > .screen-tile:not([hidden]),
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .video-grid > .screen-tile:not([hidden]).layout-hidden {
+    inset: 6px !important;
+    right: 6px !important;
+    left: 6px !important;
+    top: 6px !important;
+    bottom: 6px !important;
+  }
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .video-grid > .video-tile[data-preview-index]:not([hidden]):not(.layout-hidden) {
+    width: 110px !important;
+    height: 64px !important;
+    right: 10px !important;
+    left: auto !important;
+  }
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .video-tile[data-preview-index="0"] { bottom: 10px !important; }
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .video-tile[data-preview-index="1"] { bottom: 82px !important; }
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .video-tile[data-preview-index="2"] { bottom: 154px !important; }
+}
+/* Keep the Fit/Fill action away from preview thumbnails that float at the
+   lower right, otherwise the preview can intercept its clicks on phones. */
+body[data-theme][data-view="meeting"] #meetingView .call-layout .screen-tile .screen-fit-btn {
+  top: 12px !important;
+  left: 12px !important;
+  right: auto !important;
+  bottom: auto !important;
+  pointer-events: auto !important;
+}
+/* Home hero starts nearer to the brand header on large monitors instead of
+   floating halfway down a tall column. Preserve the editorial two-column look. */
+@media (min-width: 1051px) {
+  body[data-theme="dark"][data-view="home"] #homeView .hero-copy {
+    justify-content: flex-start !important;
+    padding: clamp(34px, 4vw, 67px) 0 42px !important;
+  }
+}
+@media (max-width: 720px) {
+  body[data-theme="dark"][data-view="home"] #homeView .hero-copy { padding-top: 36px !important; }
+}
+/* Old mobile CSS appended a second "Audio" label using ::after. */
+body[data-theme][data-view="meeting"] #meetingView #presentationAudioPill .presentation-audio-label::after {
+  content: none !important;
+  display: none !important;
+}

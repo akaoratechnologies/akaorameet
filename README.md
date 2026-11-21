@@ -1,3 +1,5 @@
+**Latest update (20 Nov 2026):** Screen-sharing presentation layout collapse fixed; see `SCREEN_SHARE_LAYOUT_FIX.md`.
+
 **Getting `permission_denied`?** See [FIX_PERMISSION_DENIED.md](FIX_PERMISSION_DENIED.md) for the Firebase Console steps. Browser camera permission is unrelated.
 
 # Akaora Meet

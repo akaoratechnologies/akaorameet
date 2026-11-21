@@ -1,0 +1,242 @@
+/* Akaora Meet: presenter-only compact controls. This layer follows all legacy theme rules. */
+body[data-view="meeting"] #meetingView .video-grid #screenTile .presenter-options-toggle[hidden],
+body[data-view="meeting"] #meetingView .video-grid #screenTile .presentation-popover[hidden],
+body[data-view="meeting"] #meetingView .video-grid #screenTile #screenFitBtn[hidden] {
+  display: none !important;
+}
+body[data-view="meeting"] #meetingView .video-grid #screenTile .presenter-options-toggle:not([hidden]) {
+  position: absolute !important;
+  inset: 12px 12px auto auto !important;
+  z-index: 85 !important;
+  width: auto !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  max-width: calc(100% - 24px) !important;
+  padding: 0 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 9px !important;
+  white-space: nowrap !important;
+  box-sizing: border-box !important;
+  color: #fff8ed !important;
+  background: rgba(13, 30, 56, .88) !important;
+  border: 1px solid rgba(236, 245, 255, .27) !important;
+  border-radius: 13px !important;
+  box-shadow: 0 8px 24px rgba(0, 6, 20, .24) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(155%) !important;
+  backdrop-filter: blur(20px) saturate(155%) !important;
+  cursor: pointer !important;
+  font-family: Inter, system-ui, sans-serif !important;
+  font-weight: 650 !important;
+  font-size: 13px !important;
+}
+body[data-view="meeting"] #meetingView .video-grid #screenTile .presenter-options-toggle:hover,
+body[data-view="meeting"] #meetingView .video-grid #screenTile .presenter-options-toggle.open {
+  border-color: rgba(255, 161, 45, .76) !important;
+  background: rgba(24, 44, 74, .97) !important;
+}
+body[data-view="meeting"] #meetingView .video-grid #screenTile .presenter-options-toggle svg {
+  display: block !important;
+  width: 17px !important;
+  height: 17px !important;
+  flex: 0 0 17px !important;
+  fill: none !important;
+  stroke: #ff9e33 !important;
+  stroke-width: 1.8 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+body[data-view="meeting"] #meetingView .video-grid #screenTile .presenter-options-toggle .presenter-chevron {
+  width: 14px !important;
+  height: 14px !important;
+  flex-basis: 14px !important;
+  stroke: #e4eaf2 !important;
+}
+body[data-view="meeting"] #meetingView .video-grid #screenTile .presenter-options-toggle.open .presenter-chevron {
+  transform: rotate(180deg);
+}
+body[data-view="meeting"] #meetingView .video-grid #screenTile .presentation-popover:not([hidden]) {
+  display: flex !important;
+  flex-direction: column !important;
+  position: absolute !important;
+  inset: 61px 12px auto auto !important;
+  z-index: 86 !important;
+  isolation: isolate !important;
+  box-sizing: border-box !important;
+  width: min(300px, calc(100% - 24px)) !important;
+  min-width: 0 !important;
+  max-width: 300px !important;
+  max-height: min(345px, calc(100% - 73px)) !important;
+  margin: 0 !important;
+  padding: 13px !important;
+  gap: 9px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  color: #f6f9ff !important;
+  background: linear-gradient(155deg, rgba(18, 38, 68, .97), rgba(7, 20, 42, .96)) !important;
+  border: 1px solid rgba(207, 227, 255, .22) !important;
+  border-radius: 17px !important;
+  box-shadow: 0 20px 48px rgba(0, 6, 22, .46), inset 0 1px rgba(255,255,255,.12) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(160%) !important;
+  backdrop-filter: blur(22px) saturate(160%) !important;
+}
+body[data-view="meeting"] #meetingView .video-grid #screenTile .presentation-popover .presenter-pill {
+  display: flex !important;
+  position: static !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 28px !important;
+  max-width: none !important;
+  padding: 0 2px 9px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(212,227,248,.17) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  font-size: 12px !important;
+  color: #e5efff !important;
+  white-space: normal !important;
+  text-align: left !important;
+}
+body[data-view="meeting"] #meetingView .video-grid #screenTile .presentation-popover .presenter-pill svg {
+  width: 17px !important;
+  height: 17px !important;
+  stroke: #ffa237 !important;
+  fill: none !important;
+}
+body[data-view="meeting"] #meetingView .video-grid #screenTile .presentation-popover #presentationAudioPill,
+body[data-view="meeting"] #meetingView .video-grid #screenTile .presentation-popover #screenFitBtn {
+  display: flex !important;
+  position: static !important;
+  inset: auto !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-direction: row !important;
+  gap: 10px !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 42px !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 10px 12px !important;
+  border: 1px solid rgba(224, 236, 255, .14) !important;
+  border-radius: 11px !important;
+  background: rgba(255,255,255,.065) !important;
+  color: #f8faff !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  text-align: left !important;
+  white-space: normal !important;
+}
+body[data-view="meeting"] #meetingView .video-grid #screenTile .presentation-popover #presentationAudioPill:disabled {
+  opacity: .6 !important;
+  cursor: not-allowed !important;
+}
+body[data-view="meeting"] #meetingView .video-grid #screenTile .presentation-popover #screenFitBtn svg {
+  display: block !important;
+  position: static !important;
+  width: 17px !important;
+  height: 17px !important;
+  fill: none !important;
+  stroke: #ffac48 !important;
+  stroke-width: 1.9 !important;
+}
+body[data-view="meeting"] #meetingView .video-grid #screenTile .presentation-popover #presentationAudioState {
+  display: inline-flex !important;
+  flex: 0 0 37px !important;
+  position: relative !important;
+  inset: auto !important;
+  width: 37px !important;
+  height: 21px !important;
+  border-radius: 999px !important;
+  background: rgba(150,165,189,.35) !important;
+  border: 1px solid rgba(255,255,255,.15) !important;
+}
+body[data-view="meeting"] #meetingView .video-grid #screenTile .presentation-popover #presentationAudioState.on {
+  background: #ff9d30 !important;
+}
+body[data-view="meeting"] #meetingView .video-grid #screenTile .presentation-popover #presentationAudioState > span {
+  display: block !important;
+  position: absolute !important;
+  top: 2px !important;
+  left: 2px !important;
+  right: auto !important;
+  width: 15px !important;
+  height: 15px !important;
+  background: #ffffff !important;
+  border: none !important;
+  border-radius: 50% !important;
+  transform: none !important;
+}
+body[data-view="meeting"] #meetingView .video-grid #screenTile .presentation-popover #presentationAudioState.on > span {
+  transform: translateX(16px) !important;
+}
+body[data-view="meeting"] #meetingView .video-grid #screenTile .presentation-popover #stopPresentingBtn {
+  display: flex !important;
+  position: static !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  min-height: 41px !important;
+  margin: 4px 0 0 !important;
+  padding: 9px 12px !important;
+  border: 1px solid rgba(255,111,93,.65) !important;
+  border-radius: 11px !important;
+  background: #d94a43 !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+}
+/* The presenter has one compact action entry, rather than overlapping pin/fullscreen buttons. */
+body[data-view="meeting"].local-presenting #meetingView #screenTile > .tile-pin,
+body[data-view="meeting"].local-presenting #meetingView #screenTile > .tile-fullscreen-action {
+  display: none !important;
+}
+@media (max-width: 480px) {
+  body[data-view="meeting"] #meetingView .video-grid #screenTile .presenter-options-toggle:not([hidden]) {
+    top: 8px !important; right: 8px !important;
+    height: 36px !important; min-height: 36px !important;
+    font-size: 11px !important; padding: 0 9px !important; border-radius: 10px !important;
+  }
+  body[data-view="meeting"] #meetingView .video-grid #screenTile .presentation-popover:not([hidden]) {
+    top: 50px !important; right: 8px !important;
+    max-height: min(300px, calc(100% - 56px)) !important;
+    width: min(290px, calc(100% - 16px)) !important;
+    padding: 10px !important;
+  }
+}
+/* Legacy flex/grid growth must not turn menu rows into full-height cards. */
+body[data-view="meeting"] #meetingView #screenTile .presentation-popover > .presenter-pill {
+  flex: 0 0 auto !important;
+}
+body[data-view="meeting"] #meetingView #screenTile .presentation-popover > #presentationAudioPill,
+body[data-view="meeting"] #meetingView #screenTile .presentation-popover > #screenFitBtn,
+body[data-view="meeting"] #meetingView #screenTile .presentation-popover > #stopPresentingBtn {
+  flex: 0 0 42px !important;
+  height: 42px !important;
+  max-height: 42px !important;
+}
+/* Light-mode regression guard: legacy dark gradients were leaking through
+   behind the light foreground even after the theme toggle changed state. */
+body[data-theme="light"][data-view="meeting"] #meetingView .meeting-top {
+  background-image: none !important;
+  background-color: rgba(255,255,255,.96) !important;
+}
+body[data-theme="light"][data-view="meeting"] #meetingView .call-layout .stage > .call-controls,
+body[data-theme="light"][data-view="meeting"] #meetingView .call-controls {
+  background-image: none !important;
+  background-color: rgba(255,255,255,.96) !important;
+}
+body[data-theme="light"][data-view="meeting"].screen-share-mode #meetingView .meeting-top {
+  background-image: none !important;
+  background-color: rgba(255,255,255,.96) !important;
+}
+body[data-theme="light"][data-view="meeting"].screen-share-mode #meetingView .call-layout .stage > .call-controls {
+  background-image: none !important;
+  background-color: rgba(255,255,255,.96) !important;
+}

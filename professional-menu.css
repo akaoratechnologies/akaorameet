@@ -1,0 +1,145 @@
+/* Professional polish + native-style Akaora context menu.
+   Kept separate to avoid regressions in legacy Firebase/WebRTC CSS. */
+:root { --am-orange: #ff9d29; --am-panel: #0d1c33; --am-panel-2: #132944; --am-text: #f5f7ff; --am-subtext: #b9cbe2; --am-line: rgba(206,224,255,.16); }
+/* Presentation and media remain usable, while decorative page text cannot be selected. */
+body, body *:not(input):not(textarea):not(select):not(option):not([contenteditable="true"]), body *::before, body *::after { -webkit-user-select:none !important; user-select:none !important; }
+input, textarea, select, [contenteditable="true"] { -webkit-user-select:text !important; user-select:text !important; }
+img { -webkit-user-drag:none; user-drag:none; }
+/* Source files have repeated border declarations around the flow and SEO text. */
+body .how-panel { border-bottom:0 !important; }
+body .seo-explainer { border-top:0 !important; margin-top:0 !important; }
+/* Meeting overlays: distinct, readable pin and hand status instead of overlapping pills. */
+body[data-view="meeting"] .video-tile.pinned::after,
+body[data-view="meeting"] .video-grid[data-pinned]:not([data-pinned=""]) .video-tile.pinned::after {
+  position:absolute !important; content:"Pinned" !important; top:14px !important; left:14px !important; right:auto !important;
+  padding:7px 11px !important; background:#ff9e36 !important; color:#07152d !important;
+  border:1px solid rgba(255,197,110,.67) !important; box-shadow:0 6px 20px rgba(0,0,0,.24) !important;
+  border-radius:9px !important; font:750 12px/1.1 Inter,system-ui,sans-serif !important; letter-spacing:0 !important;
+  z-index:25 !important; width:max-content !important; max-width:calc(100% - 82px) !important;
+}
+body[data-view="meeting"] .video-tile .hand-badge:not([hidden]) {
+  top:14px !important; right:55px !important; left:auto !important; z-index:27 !important;
+  width:max-content !important; max-width:calc(100% - 150px) !important; gap:6px !important;
+  padding:7px 10px !important; background:#ffeab6 !important; color:#382a10 !important;
+  border:1px solid #f5cf75 !important; border-radius:9px !important; box-shadow:0 6px 20px rgba(0,0,0,.2) !important;
+}
+body[data-view="meeting"] .video-tile .hand-badge strong { color:#382a10 !important; font-weight:700 !important; }
+body[data-view="meeting"] .video-tile.pinned .hand-badge:not([hidden]) { top:51px !important; right:auto !important; left:14px !important; max-width:calc(100% - 28px) !important; }
+body[data-view="meeting"] .video-tile .hand-badge[hidden] {display:none !important;}
+/* No UI panel should sit behind the top meeting header or extend beyond the screen. */
+body[data-view="meeting"] #meetingView :is(#morePanel,#devicePanel,#participantsPanel,#notesPanel,#chatDrawer) {
+  box-sizing:border-box !important; color:var(--am-text) !important; background:linear-gradient(150deg,rgba(20,43,72,.97),rgba(9,23,42,.98)) !important;
+  border:1px solid rgba(204,222,255,.18) !important; box-shadow:0 24px 55px rgba(1,7,20,.42) !important;
+  backdrop-filter:blur(20px) saturate(120%) !important; -webkit-backdrop-filter:blur(20px) saturate(120%) !important;
+}
+body[data-view="meeting"] #morePanel {
+  width:min(430px, calc(100vw - 24px)) !important; max-width:calc(100vw - 24px) !important;
+  max-height:calc(100dvh - 164px) !important; overflow-y:auto !important; overflow-x:hidden !important;
+  border-radius:16px !important; padding:16px !important;
+}
+body[data-view="meeting"] #morePanel .more-panel-hero {
+  display:flex !important; align-items:center !important; gap:12px !important; padding:12px !important;
+  margin:0 0 15px !important; border-radius:12px !important;
+  background:rgba(200,218,255,.065) !important; border:1px solid var(--am-line) !important;
+}
+body[data-view="meeting"] #morePanel .more-panel-brand { display:flex !important; align-items:center !important; min-width:0 !important; gap:10px !important; }
+body[data-view="meeting"] #morePanel .more-panel-brand img { flex:0 0 34px !important; width:34px !important; height:34px !important; object-fit:contain !important; background:rgba(3,13,30,.6) !important; border-radius:10px !important; }
+body[data-view="meeting"] #morePanel .more-panel-brand strong {display:block !important;color:var(--am-text) !important;font:750 13px/1.2 Inter,system-ui,sans-serif !important;}
+body[data-view="meeting"] #morePanel .more-panel-brand small {display:block !important;color:var(--am-subtext) !important;font-size:10px !important;line-height:1.35 !important;margin-top:3px !important;}
+body[data-view="meeting"] #morePanel .more-panel-company { height:auto !important; max-width:35% !important; max-height:32px !important; width:auto !important; object-fit:contain !important; }
+body[data-view="meeting"] #morePanel .more-head,
+body[data-view="meeting"] #chatDrawer .chat-head,
+body[data-view="meeting"] #devicePanel .device-head,
+body[data-view="meeting"] #participantsPanel .side-panel-head,
+body[data-view="meeting"] #notesPanel .side-panel-head { border-bottom:1px solid var(--am-line) !important; padding-bottom:14px !important; margin-bottom:14px !important; }
+body[data-view="meeting"] #morePanel :is(.more-head,.more-head strong,.section-title-row strong),
+body[data-view="meeting"] #devicePanel .device-head strong,
+body[data-view="meeting"] #chatDrawer .chat-head strong {color:var(--am-text) !important;font-family:Inter,system-ui,sans-serif !important;letter-spacing:-.01em !important;}
+body[data-view="meeting"] #morePanel .more-action-grid {display:grid !important;grid-template-columns:1fr !important;gap:7px !important;margin:0 0 18px !important;}
+body[data-view="meeting"] #morePanel button.more-action-btn {
+  box-sizing:border-box !important;display:flex !important;flex-direction:row !important;align-items:center !important;min-width:0 !important;
+  width:100% !important;min-height:65px !important;padding:10px 12px !important;gap:12px !important;
+  background:rgba(204,222,255,.055) !important;color:var(--am-text) !important;
+  border:1px solid rgba(210,228,255,.105) !important;border-radius:11px !important;box-shadow:none !important;text-align:left !important;
+}
+body[data-view="meeting"] #morePanel button.more-action-btn:hover,
+body[data-view="meeting"] #morePanel button.more-action-btn:focus-visible {background:rgba(255,159,43,.11) !important;border-color:rgba(255,165,65,.5) !important;}
+body[data-view="meeting"] #morePanel button.more-action-btn > .more-action-icon {
+  display:grid !important;place-items:center !important;align-self:center !important;flex:0 0 40px !important;
+  width:40px !important;height:40px !important;padding:0 !important;border-radius:10px !important;
+  background:rgba(255,158,44,.12) !important;border:1px solid rgba(255,158,44,.18) !important;
+}
+body[data-view="meeting"] #morePanel button.more-action-btn > .more-action-icon svg {
+  display:block !important;width:20px !important;height:20px !important;stroke:#ffb150 !important;fill:none !important;
+  stroke-width:1.8 !important;stroke-linecap:round !important;stroke-linejoin:round !important;opacity:1 !important;
+}
+body[data-view="meeting"] #morePanel button.more-action-btn > .more-action-copy {display:flex !important;flex:1 1 auto !important;flex-direction:column !important;gap:4px !important;min-width:0 !important;margin:0 !important;}
+body[data-view="meeting"] #morePanel button.more-action-btn > .more-action-copy b {display:block !important;white-space:normal !important;color:#f5f8ff !important;font:700 13px/1.28 Inter,system-ui,sans-serif !important;}
+body[data-view="meeting"] #morePanel button.more-action-btn > .more-action-copy small {display:block !important;margin:0 !important;color:#b8c9df !important;font:450 11px/1.4 Inter,system-ui,sans-serif !important;}
+body[data-view="meeting"] #morePanel :is(.host-controls-panel,.view-mode-list) {background:transparent !important;border:0 !important;box-shadow:none !important;border-radius:0 !important;padding:0 !important;}
+body[data-view="meeting"] #morePanel :is(.host-control-btn,.view-mode-option) {background:rgba(204,222,255,.055) !important;color:#edf5ff !important;border:1px solid var(--am-line) !important;border-radius:10px !important;}
+body[data-view="meeting"] #morePanel :is(.host-control-btn,.view-mode-option) small {color:#b7c7dc !important;}
+/* Chat: uniform dark composer, no blue strip, usable editable field. */
+body[data-view="meeting"] #chatDrawer {border-radius:15px 0 0 15px !important;overflow:hidden !important;}
+body[data-view="meeting"] #chatDrawer .chat-head :is(strong,small) {color:var(--am-text) !important;}
+body[data-view="meeting"] #chatDrawer .chat-head small {color:var(--am-subtext) !important;}
+body[data-view="meeting"] #chatDrawer .chat-messages {background:transparent !important;min-height:0 !important;}
+body[data-view="meeting"] #chatDrawer .chat-input-wrap {
+  box-sizing:border-box !important;display:flex !important;align-items:center !important;gap:9px !important;
+  width:100% !important;min-height:62px !important;margin:0 !important;padding:10px !important;
+  background:#10233c !important;border:1px solid rgba(207,225,255,.19) !important;border-radius:13px !important;
+  box-shadow:none !important;
+}
+body[data-view="meeting"] #chatDrawer #chatInput {
+  display:block !important;min-width:0 !important;flex:1 1 auto !important;height:40px !important;
+  padding:0 9px !important;color:#f9fbff !important;background:#0a192d !important;
+  border:1px solid rgba(215,229,255,.22) !important;border-radius:8px !important;box-shadow:none !important;
+}
+body[data-view="meeting"] #chatDrawer #chatInput::placeholder {color:#9fb3cc !important;opacity:1 !important;}
+body[data-view="meeting"] #chatDrawer :is(.emoji-btn,.send-btn) {
+  display:grid !important;place-items:center !important;flex:0 0 34px !important;width:34px !important;height:36px !important;
+  color:#f5f8ff !important;background:rgba(204,222,255,.08) !important;
+  border:1px solid rgba(204,222,255,.17) !important;border-radius:9px !important;
+}
+body[data-view="meeting"] #chatDrawer .send-btn {background:#ff9c2d !important;color:#09182a !important;border-color:#ff9c2d !important;}
+body[data-view="meeting"] #chatDrawer :is(.emoji-btn,.send-btn) svg {height:18px !important;width:18px !important;fill:none !important;stroke:currentColor !important;stroke-width:1.9 !important;}
+/* Device, participants and notes: consistent panel component. */
+body[data-view="meeting"] #devicePanel {width:min(420px,calc(100vw - 24px)) !important;border-radius:15px !important;padding:18px !important;}
+body[data-view="meeting"] #devicePanel .device-field span {display:block !important;margin-bottom:7px !important;color:#dce8f8 !important;font-weight:600 !important;}
+body[data-view="meeting"] #devicePanel select {width:100% !important;min-width:0 !important;height:46px !important;padding:0 14px !important;color:#f4f7ff !important;background:#101f35 !important;border:1px solid rgba(209,226,255,.23) !important;border-radius:9px !important;}
+body[data-view="meeting"] #devicePanel select option {color:#fff !important;background:#101f35 !important;}
+body[data-view="meeting"] #devicePanel .device-note {color:#aec4df !important;line-height:1.5 !important;}
+body[data-view="meeting"] #devicePanel #refreshDevicesBtn {display:flex !important;align-items:center !important;justify-content:center !important;gap:8px !important;color:#ffb451 !important;border-radius:9px !important;}
+/* Fixed badge stacking in compressed video previews. */
+@media(max-width:760px){
+  body[data-view="meeting"] #morePanel {top: max(66px, env(safe-area-inset-top)) !important;right:8px !important;left:8px !important;width:auto !important;max-width:none !important;max-height:calc(100dvh - 146px) !important;}
+  body[data-view="meeting"] #chatDrawer {border-radius:14px 14px 0 0 !important;}
+  body[data-view="meeting"] .video-tile.pinned::after,
+  body[data-view="meeting"] .video-grid[data-pinned]:not([data-pinned=""]) .video-tile.pinned::after {top:8px !important;left:8px !important;font-size:10px !important;padding:5px 7px !important;}
+  body[data-view="meeting"] .video-tile.pinned .hand-badge:not([hidden]) {top:36px !important;left:8px !important;padding:5px 7px !important;}
+}
+/* Custom right-click menu never appears in ordinary print views. */
+.akaora-context-menu[hidden] {display:none !important;}
+.akaora-context-menu {
+  position:fixed;left:0;top:0;z-index:2147483640;
+  box-sizing:border-box;width:252px;max-width:calc(100vw - 18px);
+  padding:7px;background:rgba(13,28,49,.96);color:#f8faff;
+  border:1px solid rgba(207,228,255,.22);border-radius:14px;
+  box-shadow:0 22px 55px rgba(0,5,18,.5),inset 0 1px rgba(255,255,255,.06);
+  backdrop-filter:blur(22px) saturate(125%);-webkit-backdrop-filter:blur(22px) saturate(125%);
+  font-family:Inter,system-ui,sans-serif;font-size:13px;
+}
+.akaora-context-menu-head {display:flex;align-items:center;gap:8px;padding:7px 9px 10px;border-bottom:1px solid var(--am-line);margin:0 0 5px;}
+.akaora-context-menu-head img {height:24px;width:24px;object-fit:contain;border-radius:7px;}
+.akaora-context-menu-head strong {font-size:12px;letter-spacing:.01em;}
+.akaora-context-menu-head small {display:block;color:#a8bad4;font-size:10px;margin-top:2px;}
+.akaora-context-item {display:flex;align-items:center;width:100%;min-height:39px;text-align:left;padding:8px 9px;gap:10px;border:0;border-radius:9px;background:transparent;color:#f5f8ff;font:600 12px/1.25 Inter,system-ui,sans-serif;cursor:pointer;}
+.akaora-context-item:hover,.akaora-context-item:focus-visible {background:rgba(255,158,45,.16);outline:1px solid rgba(255,166,66,.38);outline-offset:-1px;}
+.akaora-context-item svg {display:block;flex:0 0 17px;width:17px;height:17px;color:#ffb353;stroke:currentColor;stroke-width:1.85;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+.akaora-context-item span {flex:1;min-width:0;}
+.akaora-context-item kbd {color:#a9bedb;font:500 10px Inter,system-ui,sans-serif;}
+.akaora-context-separator {height:1px;margin:5px 5px;background:var(--am-line);}
+.akaora-context-status {color:#ffcf88;font-size:11px;line-height:1.4;margin:3px 8px 7px;}
+.akaora-context-status:empty {display:none;}
+@media(max-width:390px){.akaora-context-menu{width:228px;}.akaora-context-item{min-height:37px;}}
+@media print {.akaora-context-menu{display:none!important;}}

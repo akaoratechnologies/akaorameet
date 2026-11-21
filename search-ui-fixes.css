@@ -1,0 +1,164 @@
+/* Akaora Meet | integrated UI refinements + accessible SEO content */
+/* Full-bleed topbar background (content retains page grid alignment). */
+body:not([data-view="meeting"]):not([data-view="create"]):not([data-view="join"]) .app-shell {
+  padding-top: 0 !important;
+}
+body[data-view="home"] .app-shell > .topbar,
+body:not([data-view]) .app-shell > .topbar {
+  position: relative !important;
+  isolation: isolate !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin-top: 0 !important;
+  margin-bottom: 12px !important;
+  min-height: 88px;
+}
+body[data-view="home"] .app-shell > .topbar::before,
+body:not([data-view]) .app-shell > .topbar::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 0;
+  height: 100%;
+  width: 100vw;
+  transform: translateX(-50%);
+  background: rgba(7, 21, 46, .9);
+  border-bottom: 1px solid rgba(188, 208, 240, .16);
+  pointer-events: none;
+}
+body[data-theme="light"][data-view="home"] .app-shell > .topbar::before {
+  background: rgba(247, 245, 240, .94);
+  border-bottom-color: rgba(7,27,67,.14);
+}
+body[data-view="home"] .app-shell > .topbar .nav-actions {
+  flex-shrink: 0;
+}
+
+/* Invite-note: no bright solid block; native frosted, integrated notice. */
+body[data-theme][data-view="meeting"] #inviteCard .invite-card-note {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 10px !important;
+  margin: 16px 0 12px !important;
+  padding: 14px 0 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(200,220,250,.17) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #c4d3e9 !important;
+  line-height: 1.5 !important;
+}
+body[data-theme][data-view="meeting"] #inviteCard .invite-card-note span {
+  display: block !important;
+  min-width: 0;
+  background: transparent !important;
+  color: #c4d3e9 !important;
+  font-size: .87rem !important;
+  font-weight: 450 !important;
+  overflow-wrap: anywhere;
+}
+body[data-theme][data-view="meeting"] #inviteCard .invite-card-note svg {
+  flex: 0 0 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  margin-top: 2px !important;
+  color: #ffb04a !important;
+  stroke: currentColor !important;
+  fill: none !important;
+  stroke-width: 1.8 !important;
+}
+
+/* Meeting ended dialog: small, themed scrollbar within the sheet, never a heavy Windows gutter. */
+body .modal-backdrop {
+  overflow: hidden !important;
+  overscroll-behavior: contain;
+  padding: clamp(8px,2.2vh,22px) !important;
+}
+body .modal-backdrop .feedback-modal {
+  box-sizing: border-box !important;
+  width: min(100%, 710px) !important;
+  max-width: 100% !important;
+  max-height: calc(100dvh - clamp(16px,4.4vh,44px)) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(146,96,55,.5) transparent;
+  padding-right: clamp(20px,3.5vw,44px) !important;
+}
+body[data-view="meeting"] .modal-backdrop .feedback-modal::-webkit-scrollbar {
+  width: 5px !important;
+  height: 5px !important;
+  display: block !important;
+}
+body[data-view="meeting"] .modal-backdrop .feedback-modal::-webkit-scrollbar-track { background: transparent !important; display:block !important; }
+body[data-view="meeting"] .modal-backdrop .feedback-modal::-webkit-scrollbar-thumb {
+  background: rgba(146,96,55,.42);
+  border-radius: 9px;
+}
+body[data-view="meeting"] .modal-backdrop .feedback-modal::-webkit-scrollbar-thumb:hover { background: rgba(146,96,55,.7); }
+body .modal-backdrop .feedback-modal .modal-close {
+  position: sticky !important;
+  top: 0;
+  align-self: flex-end;
+  z-index: 2;
+}
+@media (max-width: 600px) {
+  body .modal-backdrop .feedback-modal { padding: 14px 18px 18px !important; }
+}
+
+/* Crawlable explanatory content, intentionally no cards. */
+body .seo-explainer {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(0,1.15fr);
+  gap: clamp(26px,5vw,80px);
+  padding: clamp(50px,8vw,110px) 0;
+  margin: 30px 0 8px;
+  border-top: 1px solid rgba(178,199,228,.2);
+  border-bottom: 1px solid rgba(178,199,228,.2);
+  color: var(--sig-text, #f7f5f0);
+}
+body .seo-explainer-header h2 {
+  font-family: var(--akaora-font-display, Georgia, serif);
+  font-size: clamp(2.2rem,4vw,4.3rem);
+  line-height: 1.13;
+  font-weight: 400;
+  margin: 13px 0 23px;
+  letter-spacing: -.04em;
+}
+body .seo-explainer-header h2 em { color: #ffad48; font-weight: 400; }
+body .seo-explainer-header > p:last-child { color: #bac9df; line-height: 1.8; max-width: 46ch; }
+body .seo-answers { border-top: 1px solid rgba(178,199,228,.2); }
+body .seo-answers details { border-bottom: 1px solid rgba(178,199,228,.2); padding: 20px 0; }
+body .seo-answers summary { cursor: pointer; font-weight: 660; font-size: 1rem; list-style: none; padding: 4px 30px 4px 0; position: relative; }
+body .seo-answers summary::-webkit-details-marker { display:none; }
+body .seo-answers summary::after { content: '+'; position: absolute; right: 0; top: 0; color: #ffad48; font-size: 1.4rem; font-weight: 400; }
+body .seo-answers details[open] summary::after { content: '−'; }
+body .seo-answers p { margin: 12px 25px 0 0; color: #bac9df; line-height: 1.65; font-size: .95rem; }
+body[data-theme="light"] .seo-explainer { color:#10213d; }
+body[data-theme="light"] .seo-explainer-header > p:last-child,
+body[data-theme="light"] .seo-answers p { color:#56657c; }
+body[data-theme="light"] .seo-explainer-header h2 em { color:#b65b23; }
+@media (max-width: 850px) {
+  body .seo-explainer { grid-template-columns: 1fr; gap: 32px; }
+}
+@media (max-width: 420px) {
+  body .seo-explainer { padding: 42px 0; }
+  body .seo-explainer-header h2 { font-size: 2.25rem; }
+}
+
+/* Ensure the textarea is readable against the ivory end-of-call sheet. */
+body[data-theme] .feedback-modal .feedback-input,
+body[data-theme] .feedback-modal .feedback-input:focus {
+  color: #142746 !important;
+  background: rgba(255,255,255,.72) !important;
+  border: 1px solid rgba(7,27,67,.21) !important;
+}
+body[data-theme] .feedback-modal .feedback-input::placeholder {
+  color: #67758a !important;
+  opacity: 1 !important;
+}

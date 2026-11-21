@@ -1,0 +1,751 @@
+/* AKAORA MEET / LIQUID GLASS — UI-only release, 2026-11-20.
+   Loaded after all legacy sheets to resolve their competing layout rules.
+   Does not modify Firebase, media tracks, signaling, or room state.
+   Glass is reserved for utility chrome, NOT for boxed content sections. */
+
+:root {
+  --glass-ink: #f4f7ff;
+  --glass-muted: #b6c4d9;
+  --glass-accent: #ffa62f;
+  --glass-red: #e6534a;
+  --glass-bg: #050b18;
+  --glass-stage: #030916;
+  --glass-surface: rgba(18, 39, 71, .57);
+  --glass-surface-hover: rgba(39, 72, 112, .66);
+  --glass-border: rgba(189, 219, 255, .19);
+  --glass-shine: rgba(255, 255, 255, .16);
+  --glass-shadow: 0 18px 50px rgba(0, 3, 15, .40), inset 0 1px 0 rgba(255,255,255,.11);
+}
+body[data-theme="dark"] {
+  color-scheme: dark;
+  --sig-bg: var(--glass-bg);
+  --sig-surface: #0b1930;
+  --sig-panel: #0d1e3b;
+  --sig-stage: var(--glass-stage);
+  --sig-text: #f4f7ff;
+  --sig-muted: #c0cee2;
+  --sig-quiet: #a3b5d1;
+  --sig-line: rgba(192,218,249,.17);
+  --atelier-bg: var(--glass-bg);
+  --atelier-ink: #f4f7ff;
+  --atelier-muted: #b6c4d9;
+  --atelier-line: rgba(192,218,249,.17);
+  --meet-chrome-bg: #08172e;
+  --meet-chrome-text: #f4f7ff;
+  --meet-chrome-muted: #b6c4d9;
+  --meet-chrome-line: rgba(192,218,249,.20);
+}
+body[data-theme="dark"]:not([data-view="meeting"]) {
+  background: radial-gradient(ellipse 65% 45% at 98% 12%, rgba(19,58,110,.32),transparent 78%),
+              radial-gradient(ellipse 50% 45% at 0% 86%, rgba(255,151,32,.065),transparent 75%), #050b18 !important;
+}
+body[data-theme="dark"] .topbar {
+  background: rgba(5, 15, 32, .71) !important;
+  border-bottom: 1px solid var(--glass-border) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+}
+body[data-theme="dark"] .hero-visual.hero-photo-wrap { overflow: hidden !important; }
+body[data-theme="dark"] .hero-photo-caption {
+  background: linear-gradient(135deg,rgba(6,19,38,.48),rgba(11,28,54,.70)) !important;
+  backdrop-filter: blur(15px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(15px) saturate(130%) !important;
+}
+body[data-theme="dark"] .hero-photo-top { color: #fff !important; }
+/* Home, create and join remain editorial and unboxed. */
+body[data-theme="dark"] :is(.hero-card,.form-card,.feature-strip article,.info-panel,.how-panel,.steps-row article) {
+  box-shadow: none !important;
+}
+
+/* Meeting uses a dark cinematic canvas regardless of chosen document theme.
+   Light theme still changes the site pages and navigational control label. */
+body[data-view="meeting"] { background: #050b18 !important; }
+body[data-theme][data-view="meeting"] #meetingView.active {
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  min-height: 0 !important;
+  padding: 12px 16px 96px !important;
+  gap: 12px !important;
+  overflow: hidden !important;
+  background: radial-gradient(ellipse 45% 32% at 52% -8%, rgba(27,72,129,.28),transparent 85%),#050b18 !important;
+}
+
+/* Floating glass header, separate hierarchy for live state and room identity. */
+body[data-view="meeting"] #meetingView .meeting-top {
+  position: relative !important;
+  display: flex !important;
+  flex: 0 0 auto !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 74px !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 12px 18px !important;
+  gap: 9px 15px !important;
+  background: linear-gradient(135deg,rgba(19,42,77,.81),rgba(6,20,41,.72)) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--glass-shadow) !important;
+  color: var(--glass-ink) !important;
+  backdrop-filter: blur(26px) saturate(155%) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(155%) !important;
+  isolation: isolate;
+}
+body[data-view="meeting"] #meetingView .meeting-top::before {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg,transparent 3%,rgba(255,255,255,.33) 40%,rgba(255,166,47,.25) 76%,transparent 98%);
+  border-radius: inherit;
+}
+body[data-view="meeting"] .meeting-top :is(.meeting-live-chip,.meeting-hud-left) { flex: 0 0 auto !important; }
+body[data-view="meeting"] .meeting-top .meeting-live-chip {
+  display: inline-flex !important;
+  padding: 0 !important;
+  font-size: .69rem !important;
+  letter-spacing: .10em !important;
+  color: #c6d5ea !important;
+}
+body[data-view="meeting"] .meeting-top .meeting-live-chip i { box-shadow: 0 0 0 4px rgba(62,193,147,.10),0 0 13px rgba(62,193,147,.48) !important; }
+body[data-view="meeting"] .meeting-top .meeting-hud-left {
+  padding-right: 17px !important;
+  border-right: 1px solid var(--glass-border) !important;
+}
+body[data-view="meeting"] .meeting-top .meeting-clock { color: #eef5ff !important; font-size: .79rem !important; }
+body[data-view="meeting"] .meeting-top .room-meta {
+  display: flex !important;
+  flex: 1 1 230px !important;
+  min-width: 170px !important;
+  max-width: 370px !important;
+  width: auto !important;
+  margin: 0 auto 0 0 !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+body[data-view="meeting"] .meeting-top .room-meta img {
+  width: 44px !important;
+  height: 44px !important;
+  flex: 0 0 44px !important;
+  padding: 5px !important;
+  background: rgba(1,9,26,.58) !important;
+  border: 1px solid rgba(216,233,255,.12) !important;
+  border-radius: 13px !important;
+}
+body[data-view="meeting"] .meeting-top .room-meta > div { min-width: 0 !important; max-width: 100% !important; }
+body[data-view="meeting"] .meeting-top .room-meta strong {
+  display: block !important;
+  color: #ffffff !important;
+  letter-spacing: .07em !important;
+  font-size: 1.03rem !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+body[data-view="meeting"] .meeting-top .room-meta :is(span,small) { color: #aabbd4 !important; }
+body[data-view="meeting"] .meeting-top .share-actions {
+  display: flex !important;
+  align-items: center !important;
+  flex: 0 0 auto !important;
+  justify-content: flex-end !important;
+  gap: 7px !important;
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 0 0 auto !important;
+}
+body[data-view="meeting"] #meetingView .share-actions :is(.theme-switch,.mini-btn) {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  padding: 0 13px !important;
+  min-height: 42px !important;
+  height: 42px !important;
+  border: 1px solid rgba(190,218,255,.16) !important;
+  border-radius: 11px !important;
+  background: rgba(236,246,255,.065) !important;
+  color: #ecf4ff !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  white-space: nowrap !important;
+  font-size: .78rem !important;
+  font-weight: 650 !important;
+}
+body[data-view="meeting"] #meetingView .share-actions :is(.theme-switch,.mini-btn):hover { background: rgba(170,207,252,.15) !important; border-color: rgba(255,255,255,.30) !important; }
+body[data-view="meeting"] #meetingView .share-actions svg { width: 17px !important; height: 17px !important; }
+
+/* Presentation tools form a single compact strip, rather than oversized blocks. */
+body[data-view="meeting"] #meetingView .presentation-hud:not([hidden]) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  flex: 0 1 auto !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+body[data-view="meeting"] #meetingView .presentation-pill {
+  display: inline-flex !important;
+  flex: 0 1 auto !important;
+  align-items: center !important;
+  min-width: 0 !important;
+  max-width: min(300px, 29vw) !important;
+  min-height: 41px !important;
+  height: 41px !important;
+  padding: 0 12px !important;
+  gap: 8px !important;
+  color: #e8f1ff !important;
+  background: rgba(220,239,255,.07) !important;
+  border: 1px solid rgba(211,232,255,.18) !important;
+  border-radius: 11px !important;
+  backdrop-filter: blur(16px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(130%) !important;
+  font-size: .78rem !important;
+}
+body[data-view="meeting"] #meetingView .presenter-pill span {
+  display: inline-block !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+body[data-view="meeting"] #meetingView #presentationAudioPill { cursor: pointer; }
+body[data-view="meeting"] #meetingView #presentationAudioPill .audio-toggle {
+  display: inline-flex !important;
+  width: 33px !important;
+  height: 18px !important;
+  flex: 0 0 33px !important;
+  align-items: center !important;
+  padding: 2px !important;
+  border: 1px solid rgba(255,255,255,.20) !important;
+  border-radius: 40px !important;
+  background: rgba(134,156,182,.28) !important;
+}
+body[data-view="meeting"] #meetingView #presentationAudioPill .audio-toggle.on { background: rgba(255,166,47,.83) !important; }
+body[data-view="meeting"] #meetingView #presentationAudioPill .audio-toggle span { width: 13px !important; height: 13px !important; border-radius: 50% !important; background: #fff !important; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+body[data-view="meeting"] #meetingView #stopPresentingBtn {
+  flex: 0 0 auto !important;
+  min-height: 41px !important;
+  height: 41px !important;
+  padding: 0 16px !important;
+  border: 1px solid rgba(255,177,83,.6) !important;
+  border-radius: 10px !important;
+  background: linear-gradient(135deg,#ffb54b,#ff8e19) !important;
+  color: #06142d !important;
+  font-size: .78rem !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 18px rgba(255,139,20,.19),inset 0 1px 0 rgba(255,255,255,.35) !important;
+}
+body[data-view="meeting"] #meetingView #stopPresentingBtn:hover { background: #ffc572 !important; }
+
+/* Full-size call stage, with a distinct border and subtle light refraction. */
+body[data-view="meeting"] #meetingView .call-layout {
+  display: flex !important;
+  position: relative !important;
+  flex: 1 1 0 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+body[data-view="meeting"] #meetingView .call-layout > .stage {
+  position: relative !important;
+  display: flex !important;
+  flex: 1 1 0 !important;
+  flex-direction: column !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid rgba(166,200,248,.18) !important;
+  border-radius: 17px !important;
+  overflow: hidden !important;
+  background: radial-gradient(ellipse at 50% 42%,#0d2444,#07152c 58%,#030b1c) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07),0 16px 60px rgba(1,5,16,.23) !important;
+}
+body[data-view="meeting"] #meetingView .call-layout .stage::before { display: none !important; }
+body[data-view="meeting"] #meetingView .stage > .video-grid {
+  display: grid;
+  position: relative !important;
+  flex: 1 1 0 !important;
+  inset: auto !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  max-height: none !important;
+  padding: 6px !important;
+  margin: 0 !important;
+  gap: 6px !important;
+  overflow: hidden !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 14px !important;
+}
+body[data-view="meeting"] #meetingView .video-grid > .video-tile:not(.screen-tile) {
+  border-radius: 11px !important;
+  overflow: hidden !important;
+  background: radial-gradient(ellipse at center,#183660 0%,#091b36 64%,#071226 100%) !important;
+}
+body[data-view="meeting"] #meetingView .stage .tile-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  width: auto !important;
+  max-width: calc(100% - 24px) !important;
+  min-height: 30px !important;
+  padding: 5px 10px !important;
+  gap: 5px !important;
+  border: 1px solid rgba(255,255,255,.16) !important;
+  border-radius: 8px !important;
+  color: #f4f7ff !important;
+  background: rgba(6,17,38,.61) !important;
+  backdrop-filter: blur(18px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(140%) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08) !important;
+}
+body[data-view="meeting"] #meetingView .stage .tile-badge span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .72rem; }
+body[data-view="meeting"] #meetingView .stage :is(.tile-pin,.tile-fullscreen-action) {
+  width: 35px !important;
+  height: 35px !important;
+  border: 1px solid rgba(255,255,255,.17) !important;
+  border-radius: 10px !important;
+  color: #f4f7ff !important;
+  background: rgba(6,17,38,.60) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+}
+body[data-view="meeting"] #meetingView .stage .tile-pin:hover,
+body[data-view="meeting"] #meetingView .stage .tile-fullscreen-action:hover { background: rgba(255,165,47,.22) !important; }
+body[data-view="meeting"] #meetingView .stage .avatar-circle { background: linear-gradient(145deg,#ffbd67,#ff8d28) !important; color: #06142d !important; }
+body[data-view="meeting"] #meetingView .stage .avatar-placeholder p { color: #e8f1ff !important; }
+
+/* Screen-share keeps its proven absolute-placement strategy, with glass previews. */
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView.active {
+  padding: 12px 16px 96px !important;
+  gap: 12px !important;
+  background: #050b18 !important;
+}
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .meeting-top {
+  flex: 0 0 auto !important;
+  min-height: 74px !important;
+  padding: 12px 18px !important;
+  background: linear-gradient(135deg,rgba(19,42,77,.82),rgba(6,20,41,.76)) !important;
+}
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .stage > .video-grid,
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .stage > .video-grid[data-pin-count] {
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 !important;
+  background: #030b1b !important;
+}
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .video-grid > .screen-tile:not([hidden]) {
+  position: absolute !important;
+  top: 10px !important;
+  bottom: 10px !important;
+  left: 10px !important;
+  right: 220px !important;
+  width: auto !important;
+  height: auto !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(185,216,255,.14) !important;
+  background: #030b1b !important;
+  overflow: hidden !important;
+}
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .screen-tile video {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  background: #020816 !important;
+}
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .video-grid > .video-tile[data-preview-index]:not([hidden]):not(.layout-hidden) {
+  position: absolute !important;
+  top: auto !important;
+  left: auto !important;
+  right: 10px !important;
+  z-index: 5 !important;
+  width: 198px !important;
+  height: 111px !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  border: 1px solid rgba(205,229,255,.24) !important;
+  border-radius: 11px !important;
+  box-shadow: 0 10px 26px rgba(0,4,20,.34),inset 0 1px 0 rgba(255,255,255,.09) !important;
+  background: rgba(19,42,74,.68) !important;
+  overflow: hidden !important;
+}
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index="0"] { bottom: 10px !important; }
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index="1"] { bottom: 131px !important; }
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index="2"] { bottom: 252px !important; }
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index="3"] { bottom: 373px !important; }
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index="4"] { bottom: 494px !important; }
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index="5"] { bottom: 615px !important; }
+body[data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index] .avatar-circle {
+  width: 39px !important;
+  height: 39px !important;
+  font-size: 1.1rem !important;
+}
+body[data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index] .avatar-placeholder p { display: none !important; }
+body[data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index] .tile-badge {
+  bottom: 5px !important;
+  left: 6px !important;
+  right: 6px !important;
+  max-width: calc(100% - 12px) !important;
+  min-height: 23px !important;
+  padding: 2px 7px !important;
+}
+body[data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index] .tile-badge span { font-size: .61rem !important; }
+body[data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index] :is(.tile-pin,.tile-fullscreen-action) {
+  top: 6px !important;
+  width: 26px !important;
+  height: 26px !important;
+  border-radius: 7px !important;
+}
+
+/* Both meeting modes get the same floating translucent dock.
+   Keeping it fixed eliminates earlier layout collapse on sharing. */
+body[data-view="meeting"] #meetingView .call-layout .stage > .call-controls,
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .stage > .call-controls {
+  position: fixed !important;
+  top: auto !important;
+  bottom: max(12px, env(safe-area-inset-bottom, 0px)) !important;
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  display: flex !important;
+  flex: 0 0 auto !important;
+  flex-wrap: nowrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+  width: max-content !important;
+  max-width: calc(100vw - 24px) !important;
+  min-width: 0 !important;
+  height: 70px !important;
+  min-height: 70px !important;
+  max-height: 70px !important;
+  padding: 9px 12px !important;
+  margin: 0 !important;
+  gap: 7px !important;
+  z-index: 110 !important;
+  border: 1px solid rgba(202,226,255,.22) !important;
+  border-radius: 20px !important;
+  color: #eff5ff !important;
+  background: linear-gradient(120deg,rgba(26,51,87,.72),rgba(8,23,47,.82)) !important;
+  box-shadow: 0 20px 50px rgba(0,3,16,.57), inset 0 1px 0 rgba(255,255,255,.19),inset 0 -1px 0 rgba(0,0,0,.2) !important;
+  backdrop-filter: blur(32px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
+  overflow: visible !important;
+}
+body[data-view="meeting"] #meetingView .call-layout .stage > .call-controls::before {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  inset: 0 10px auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent,rgba(255,255,255,.38), transparent);
+}
+body[data-view="meeting"] #meetingView .call-layout .stage > .call-controls > .control-btn,
+body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .stage > .call-controls > .control-btn {
+  position: relative !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  flex: 0 0 48px !important;
+  width: 48px !important;
+  min-width: 48px !important;
+  max-width: 48px !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  max-height: 48px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 1px solid transparent !important;
+  border-radius: 13px !important;
+  color: #e9f2ff !important;
+  background: rgba(232,242,255,.05) !important;
+  box-shadow: none !important;
+  transition: background 140ms ease, transform 140ms ease, border-color 140ms ease !important;
+}
+body[data-view="meeting"] #meetingView .call-layout .stage > .call-controls > .control-btn:hover { transform: translateY(-2px) !important; background: rgba(201,225,255,.16) !important; border-color: rgba(225,239,255,.18) !important; }
+body[data-view="meeting"] #meetingView .call-layout .stage > .call-controls > .control-btn.off { background: rgba(207,89,83,.14) !important; color: #ffbcb2 !important; }
+body[data-view="meeting"] #meetingView .call-layout .stage > .call-controls > .control-btn.on { background: rgba(255,166,47,.18) !important; color: #ffbc61 !important; }
+body[data-view="meeting"] #meetingView .call-layout .stage > .call-controls > #hangupBtn { background: linear-gradient(135deg,#e45951,#cc3e49) !important; color: #fff !important; border-color: rgba(255,211,213,.18) !important; }
+body[data-view="meeting"] #meetingView .call-layout .stage > .call-controls > #hangupBtn:hover { background: #f05b55 !important; }
+body[data-view="meeting"] #meetingView .call-layout .stage > .call-controls > .control-btn svg { width: 21px !important; height: 21px !important; }
+body[data-view="meeting"] #meetingView .call-layout .stage > .call-controls > .control-btn:focus-visible { outline: 2px solid var(--glass-accent) !important; outline-offset: 2px !important; }
+
+/* Functional drawers: frosted panes with legible controls, not decorative cards. */
+body[data-view="meeting"] :is(#chatDrawer,#morePanel,#participantsPanel,#notesPanel,#devicePanel,#inviteCard,#waitingRoomCard,#reactionPanel) {
+  color: #f1f6ff !important;
+  background: linear-gradient(155deg,rgba(23,49,82,.86),rgba(8,22,44,.84)) !important;
+  border: 1px solid rgba(200,226,255,.21) !important;
+  border-radius: 15px !important;
+  box-shadow: 0 24px 65px rgba(0,3,17,.50), inset 0 1px 0 rgba(255,255,255,.12) !important;
+  backdrop-filter: blur(26px) saturate(165%) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(165%) !important;
+}
+body[data-view="meeting"] :is(.chat-input-wrap,.notes-input,.invite-link-box) {
+  background: rgba(1,10,28,.42) !important;
+  border-color: rgba(210,233,255,.17) !important;
+  border-radius: 10px !important;
+}
+body[data-view="meeting"] :is(.chat-input-wrap input,.notes-input textarea) { color: #f6f8ff !important; }
+body[data-view="meeting"] :is(.chat-input-wrap input,.notes-input textarea)::placeholder { color: #9eaec8 !important; }
+body[data-view="meeting"] .more-action-btn:hover { background: rgba(195,220,255,.10) !important; }
+body[data-view="meeting"] .chat-message.mine { background: rgba(255,166,47,.12) !important; }
+
+/* Desktop: avoid cramped header by placing presentation strip on its own row. */
+@media (max-width: 1500px) {
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .presentation-hud:not([hidden]) {
+    order: 4 !important;
+    flex: 1 1 100% !important;
+    justify-content: flex-start !important;
+  }
+}
+@media (max-width: 970px) {
+  body[data-view="meeting"] #meetingView .meeting-top .meeting-live-chip { display: none !important; }
+  body[data-view="meeting"] #meetingView .meeting-top .meeting-hud-left { display: none !important; }
+  body[data-view="meeting"] #meetingView .meeting-top .room-meta { flex: 1 1 155px !important; min-width: 155px !important; max-width: 100% !important; }
+  body[data-view="meeting"] #meetingView .meeting-top .share-actions { max-width: 100% !important; }
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .presentation-hud:not([hidden]) {
+    flex: 1 1 100% !important;
+    order: 4 !important;
+  }
+}
+@media (max-width: 780px) {
+  body[data-theme][data-view="meeting"] #meetingView.active,
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView.active {
+    padding: 6px 7px 95px !important;
+    gap: 7px !important;
+  }
+  body[data-view="meeting"] #meetingView .meeting-top,
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .meeting-top {
+    min-height: 57px !important;
+    padding: 8px 10px !important;
+    gap: 8px 10px !important;
+    border-radius: 12px !important;
+  }
+  body[data-view="meeting"] #meetingView .meeting-top .room-meta { gap: 7px !important; max-width: none !important; flex: 1 1 165px !important; }
+  body[data-view="meeting"] #meetingView .meeting-top .room-meta img { width: 33px !important; height: 33px !important; flex-basis:33px !important; border-radius: 9px !important; }
+  body[data-view="meeting"] #meetingView .meeting-top .room-meta span { font-size: .48rem !important; letter-spacing: .045em !important; }
+  body[data-view="meeting"] #meetingView .meeting-top .room-meta strong { font-size: .83rem !important; }
+  body[data-view="meeting"] #meetingView .meeting-top .room-meta small { font-size: .59rem !important; }
+  body[data-view="meeting"] #meetingView .meeting-top .share-actions { flex: 1 1 100% !important; justify-content: flex-start !important; margin: 0 !important; gap: 5px !important; overflow-x: auto !important; scrollbar-width:none !important; }
+  body[data-view="meeting"] #meetingView .share-actions :is(.theme-switch,.mini-btn) { height: 34px !important; min-height: 34px !important; padding: 0 9px !important; font-size: .70rem !important; border-radius: 8px !important; }
+  body[data-view="meeting"] #meetingView .presentation-hud:not([hidden]) { flex: 1 1 100% !important; order: 4 !important; gap: 5px !important; overflow-x: auto !important; scrollbar-width: none !important; }
+  body[data-view="meeting"] #meetingView .presentation-pill { min-height: 36px !important; height: 36px !important; padding: 0 9px !important; font-size: .67rem !important; max-width: none !important; }
+  body[data-view="meeting"] #meetingView #stopPresentingBtn { height: 36px !important; min-height: 36px !important; font-size: .68rem !important; padding: 0 10px !important; }
+  body[data-view="meeting"] #meetingView .call-layout > .stage { border-radius: 11px !important; }
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .video-grid > .screen-tile:not([hidden]) { inset: 5px !important; border-radius: 6px !important; }
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .video-grid > .video-tile[data-preview-index]:not([hidden]):not(.layout-hidden) { right: 9px !important; width: 106px !important; height: 67px !important; border-radius: 8px !important; }
+  body[data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index="0"] { bottom: 9px !important; }
+  body[data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index="1"] { bottom: 84px !important; }
+  body[data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index="2"] { bottom: 159px !important; }
+  body[data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index="3"] { bottom: 234px !important; }
+  body[data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index="4"] { bottom: 309px !important; }
+  body[data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index="5"] { bottom: 384px !important; }
+  body[data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index] .avatar-circle { width: 31px !important; height: 31px !important; font-size: .86rem !important; }
+  body[data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index] .tile-badge { min-height: 18px !important; padding: 0 3px !important; bottom: 3px !important; }
+  body[data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index] .tile-badge span { font-size: .48rem !important; }
+  body[data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index] .tile-pin,
+  body[data-view="meeting"].screen-share-mode #meetingView .video-tile[data-preview-index] .tile-fullscreen-action { width: 22px !important; height: 22px !important; }
+  body[data-view="meeting"] #meetingView .call-layout .stage > .call-controls,
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .stage > .call-controls {
+    bottom: max(7px,env(safe-area-inset-bottom,0px)) !important;
+    display: grid !important;
+    grid-template-columns: repeat(9,minmax(0,1fr)) !important;
+    width: calc(100vw - 14px) !important;
+    max-width: calc(100vw - 14px) !important;
+    height: 65px !important;
+    min-height: 65px !important;
+    max-height: 65px !important;
+    gap: 3px !important;
+    padding: 7px 8px !important;
+    border-radius: 15px !important;
+  }
+  body[data-view="meeting"] #meetingView .call-layout .stage > .call-controls > .control-btn,
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .stage > .call-controls > .control-btn {
+    display:grid !important;
+    flex:none !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    height:44px !important;
+    min-height:44px !important;
+    max-height:44px !important;
+    border-radius:9px !important;
+  }
+  body[data-view="meeting"] #meetingView .call-layout .stage > .call-controls > .control-btn svg { width: 18px !important; height: 18px !important; }
+}
+@media (max-width: 380px) {
+  body[data-view="meeting"] #meetingView .call-layout .stage > .call-controls,
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .stage > .call-controls { gap: 2px !important; padding: 7px 6px !important; }
+  body[data-view="meeting"] #meetingView .call-layout .stage > .call-controls > .control-btn svg { width: 16px !important; height: 16px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-view="meeting"] #meetingView .call-layout .stage > .call-controls > .control-btn { transition: none !important; }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  body[data-view="meeting"] #meetingView :is(.meeting-top,.call-controls,#chatDrawer,#morePanel,#participantsPanel,#notesPanel,#devicePanel) { background: #0b1e39 !important; }
+}
+
+/* Hard reset of legacy nth-child(6) grid placement in polish.css.
+   It previously wrapped reactions and the final four actions onto row two. */
+@media (max-width:780px) {
+  body[data-view="meeting"] #meetingView .call-layout .stage > .call-controls > button.control-btn,
+  body[data-view="meeting"] #meetingView .call-layout .stage > .call-controls > button.control-btn:nth-child(6),
+  body[data-theme][data-view="meeting"].screen-share-mode #meetingView .call-layout .stage > .call-controls > button.control-btn {
+    grid-column: auto !important;
+    grid-row: auto !important;
+    grid-area: auto !important;
+    order: 0 !important;
+  }
+}
+
+/* Status messages float above the dock without covering its controls. */
+body[data-view="meeting"] #toast {
+  position: fixed !important;
+  left: auto !important;
+  right: 20px !important;
+  bottom: 96px !important;
+  width: auto !important;
+  max-width: min(330px, calc(100vw - 32px)) !important;
+  transform: translateY(10px) !important;
+  border: 1px solid rgba(217,235,255,.24) !important;
+  border-radius: 12px !important;
+  background: rgba(16,39,72,.92) !important;
+  color: #f4f7ff !important;
+  box-shadow: 0 10px 30px rgba(1,5,18,.44) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  font-size: .77rem !important;
+  line-height: 1.45 !important;
+  pointer-events: none !important;
+}
+body[data-view="meeting"] #toast.show { transform: translateY(0) !important; }
+body[data-view="meeting"] #toast.error { background: rgba(103,35,50,.92) !important; }
+@media (max-width:780px) {
+  body[data-view="meeting"] #toast { left: 12px !important; right: 12px !important; bottom: 86px !important; max-width: none !important; }
+}
+
+/* Mobile final fit: legacy CSS assigned 38px width to header buttons even
+   though their captions were still visible. Size by content instead. */
+@media (max-width:780px) {
+  body[data-view="meeting"] #meetingView .meeting-top .share-actions > :is(button,.mini-btn,.theme-switch) {
+    flex:0 0 auto !important;
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    overflow:hidden !important;
+    white-space:nowrap !important;
+  }
+  body[data-view="meeting"] #meetingView #meetingThemeToggle { width:36px !important; padding:0 !important; justify-content:center !important; }
+  body[data-view="meeting"] #meetingView #meetingThemeToggle > span { display:none !important; }
+  body[data-view="meeting"] #meetingView #copyInviteBtn { padding:0 12px !important; }
+  body[data-view="meeting"] #meetingView .presentation-hud:not([hidden]) {
+    display:flex !important;
+    flex-wrap:nowrap !important;
+    width:100% !important;
+    justify-content:space-between !important;
+  }
+  body[data-view="meeting"] #meetingView #presenterPill {
+    flex:1 1 0 !important;
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+  }
+  body[data-view="meeting"] #meetingView #presentationAudioPill {
+    flex:0 0 85px !important;
+    width:85px !important;
+    min-width:85px !important;
+    max-width:85px !important;
+    justify-content:space-between !important;
+    padding:0 7px !important;
+    gap:5px !important;
+    overflow:hidden !important;
+  }
+  body[data-view="meeting"] #meetingView #presentationAudioPill > span:first-child { font-size:0 !important; }
+  body[data-view="meeting"] #meetingView #presentationAudioPill > span:first-child::after { content:'Audio'; font-size:.67rem; }
+  body[data-view="meeting"] #meetingView #presentationAudioPill .audio-toggle { flex-basis:29px !important; width:29px !important; }
+  body[data-view="meeting"] #meetingView #stopPresentingBtn {
+    flex:0 0 105px !important;
+    width:105px !important;
+    min-width:105px !important;
+    max-width:105px !important;
+    padding:0 6px !important;
+    white-space:nowrap !important;
+  }
+}
+@media (max-width:380px) {
+  body[data-view="meeting"] #meetingView #presentationAudioPill { flex-basis:75px !important; width:75px !important; min-width:75px !important; max-width:75px !important; }
+  body[data-view="meeting"] #meetingView #stopPresentingBtn { flex-basis:99px !important; width:99px !important; min-width:99px !important; max-width:99px !important; font-size:.62rem !important; }
+  body[data-view="meeting"] #meetingView .presentation-hud:not([hidden]) { gap:4px !important; }
+}
+
+/* Make auxiliary panes usable alongside the floating meeting dock. */
+body[data-view="meeting"] #chatDrawer {
+  box-sizing:border-box !important;
+  top:86px !important;
+  bottom:94px !important;
+  right:16px !important;
+  left:auto !important;
+  width:min(390px,calc(100vw - 32px)) !important;
+  max-width:calc(100vw - 32px) !important;
+  min-width:0 !important;
+  height:auto !important;
+  max-height:calc(100dvh - 180px) !important;
+  z-index:100 !important;
+}
+body[data-view="meeting"] #chatDrawer .chat-head { flex:0 0 auto !important; }
+body[data-view="meeting"] #chatDrawer .chat-messages { min-height:0 !important; flex:1 1 auto !important; }
+body[data-view="meeting"] #chatDrawer .chat-input-wrap { flex:0 0 auto !important; width:100% !important; box-sizing:border-box !important; }
+body[data-view="meeting"] #morePanel .host-controls-panel {
+  border:0 !important;
+  border-top:1px solid rgba(205,229,255,.19) !important;
+  background:transparent !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+}
+@media(max-width:780px) {
+  body[data-view="meeting"] #chatDrawer {
+    position:fixed !important;
+    top:8px !important;
+    left:8px !important;
+    right:8px !important;
+    bottom:88px !important;
+    width:calc(100vw - 16px) !important;
+    max-width:calc(100vw - 16px) !important;
+    max-height:calc(100dvh - 96px) !important;
+    border-radius:13px !important;
+    padding:14px !important;
+    overflow:hidden !important;
+    transform:translateX(calc(100% + 20px));
+  }
+  body[data-view="meeting"] #chatDrawer.open {
+    transform:translateX(0) !important;
+    opacity:1 !important;
+    pointer-events:auto !important;
+  }
+  body[data-view="meeting"] #chatDrawer #chatInput { min-width:0 !important; }
+}

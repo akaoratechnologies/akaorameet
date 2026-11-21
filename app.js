@@ -61,6 +61,7 @@ const ui = {
   localHandBadge: $("localHandBadge"),
   screenTile: $("screenTile"),
   screenVideo: $("screenVideo"),
+  screenFitBtn: $("screenFitBtn"),
   screenAudio: $("screenAudio"),
   screenPinBtn: $("screenPinBtn"),
   pinButtons: [...document.querySelectorAll("[data-pin-tile]")],
@@ -120,6 +121,7 @@ const ui = {
   clearNotesBtn: $("clearNotesBtn"),
   notesStatus: $("notesStatus"),
   presentationHud: $("presentationHud"),
+  presenterOptionsToggle: $("presenterOptionsToggle"),
   presenterPillText: $("presenterPillText"),
   presentationAudioPill: $("presentationAudioPill"),
   presentationAudioState: $("presentationAudioState"),
@@ -422,8 +424,10 @@ function bindEvents() {
   ui.saveNotesBtn?.addEventListener("click", saveMeetingNotes);
   ui.downloadNotesBtn?.addEventListener("click", downloadMeetingNotes);
   ui.clearNotesBtn?.addEventListener("click", clearMeetingNotes);
-  ui.stopPresentingBtn?.addEventListener("click", () => stopScreenShare(true));
+  ui.stopPresentingBtn?.addEventListener("click", () => { closePresenterOptions(); stopScreenShare(true); });
+  ui.presenterOptionsToggle?.addEventListener("click", (event) => { event.stopPropagation(); togglePresenterOptions(); });
   ui.presentationAudioPill?.addEventListener("click", togglePresentationAudio);
+  ui.screenFitBtn?.addEventListener("click", toggleScreenFit);
 
   ui.closeMeetingEndedModal?.addEventListener("click", closeFeedbackModal);
   ui.skipFeedbackBtn?.addEventListener("click", closeFeedbackModal);
@@ -442,10 +446,12 @@ function bindEvents() {
       ui.emojiBtn.setAttribute("aria-expanded", "false");
     }
     if (!ui.morePanel?.hidden && !event.target.closest("#morePanel, #moreBtn")) toggleMorePanel(false);
+    if (!ui.presentationHud?.hidden && !event.target.closest("#presentationHud, #presenterOptionsToggle")) closePresenterOptions();
   });
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
-    if (!ui.meetingEndedModal?.hidden) closeFeedbackModal();
+    if (!ui.presentationHud?.hidden) closePresenterOptions();
+    else if (!ui.meetingEndedModal?.hidden) closeFeedbackModal();
     else if (!ui.devicePanel?.hidden) toggleDevicePanel(false);
     else if (!ui.morePanel?.hidden) toggleMorePanel(false);
     else if (!ui.participantsPanel?.hidden) toggleParticipantsPanel(false);
@@ -476,9 +482,9 @@ function bindToggle(button, label) {
 
 function initTheme() {
   let savedTheme = null;
-  try { savedTheme = localStorage.getItem("akaora-meet-theme"); } catch (_) {}
+  try { savedTheme = localStorage.getItem("akaora-meet-signature-theme"); } catch (_) {}
   const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-  setTheme(savedTheme || "light", false);
+  setTheme(savedTheme || "dark", false);
 }
 
 function toggleTheme() {
@@ -489,10 +495,10 @@ function toggleTheme() {
 function setTheme(theme, announce = true) {
   const normalizedTheme = theme === "dark" ? "dark" : "light";
   document.body.dataset.theme = normalizedTheme;
-  try { localStorage.setItem("akaora-meet-theme", normalizedTheme); } catch (_) {}
+  try { localStorage.setItem("akaora-meet-signature-theme", normalizedTheme); } catch (_) {}
 
   const metaTheme = document.querySelector('meta[name="theme-color"]');
-  if (metaTheme) metaTheme.setAttribute("content", normalizedTheme === "dark" ? "#131a1d" : "#f8f7f3");
+  if (metaTheme) metaTheme.setAttribute("content", normalizedTheme === "dark" ? "#050b18" : "#f7f5f0");
 
   const label = normalizedTheme === "dark" ? "Light" : "Dark";
   ui.themeToggles.forEach((button) => {
@@ -1810,6 +1816,11 @@ function renderActiveScreenShare() {
     const badge = ui.screenTile.querySelector(".tile-badge span");
     if (badge) badge.textContent = state.localScreenAudioTrack ? "Screen + sound" : "Screen sharing";
     ui.screenTile.hidden = false;
+    // A local capture does not necessarily begin playing just because srcObject
+    // changes, especially after the source chooser switches window focus.
+    ui.screenVideo.play()?.catch((error) => {
+      if (error?.name !== "AbortError") console.warn("Local presentation playback failed", error);
+    });
   } else if (remotePresenter) {
     const screenVideoTrack = remotePresenter.screenStream.getVideoTracks().find((track) =>
       track.readyState === "live" && !track.muted
@@ -3154,7 +3165,11 @@ function applyTileVisibilitySettings() {
   const maxTiles = clampNumber(state.viewSettings.maxTiles, 1, 9, 6);
   if (visible.length <= maxTiles) return;
 
-  const keep = new Set([...visible].sort((a, b) => tilePriority(a) - tilePriority(b)).slice(0, maxTiles));
+  // Never hide an active presentation just because the user has pinned
+  // another tile or selected a one-tile view in a previous meeting.
+  const activeScreen = visible.find((tile) => getTileName(tile) === "screen");
+  const ordered = [...visible].filter((tile) => tile !== activeScreen).sort((a, b) => tilePriority(a) - tilePriority(b));
+  const keep = new Set((activeScreen ? [activeScreen, ...ordered] : ordered).slice(0, maxTiles));
   visible.forEach((tile) => tile.classList.toggle("layout-hidden", !keep.has(tile)));
 }
 
@@ -3520,6 +3535,32 @@ async function togglePresentationAudio() {
   updatePresentationHud();
 }
 
+function toggleScreenFit() {
+  if (!ui.screenTile || ui.screenTile.hidden) return;
+  const isFill = ui.screenTile.classList.toggle("screen-fill");
+  ui.screenFitBtn?.setAttribute("aria-pressed", String(isFill));
+  ui.screenFitBtn?.setAttribute("aria-label", isFill ? "Fit entire shared screen" : "Fill presentation view, may crop edges");
+  ui.screenFitBtn?.setAttribute("title", isFill ? "Fit entire screen (no cropping)" : "Fill stage (crop edges)");
+  const label = ui.screenFitBtn?.querySelector("span");
+  if (label) label.textContent = isFill ? "Fit" : "Fill";
+  setAppStatus(isFill ? "Screen zoomed to fill" : "Entire screen visible", "ready");
+}
+
+function closePresenterOptions() {
+  if (ui.presentationHud) ui.presentationHud.hidden = true;
+  ui.presenterOptionsToggle?.setAttribute("aria-expanded", "false");
+  ui.presenterOptionsToggle?.classList.remove("open");
+}
+
+function togglePresenterOptions(force) {
+  const isLocal = Boolean(state.localScreenTrack && !ui.screenTile?.hidden && ui.screenTile?.dataset?.source === "local");
+  if (!isLocal) return closePresenterOptions();
+  const shouldOpen = typeof force === "boolean" ? force : Boolean(ui.presentationHud?.hidden);
+  if (ui.presentationHud) ui.presentationHud.hidden = !shouldOpen;
+  ui.presenterOptionsToggle?.setAttribute("aria-expanded", String(shouldOpen));
+  ui.presenterOptionsToggle?.classList.toggle("open", shouldOpen);
+}
+
 function updatePresentationHud() {
   if (!ui.presentationHud || !ui.presentationAudioState || !ui.presenterPillText) return;
   const hasScreen = !ui.screenTile.hidden;
@@ -3529,7 +3570,11 @@ function updatePresentationHud() {
   const localAudioEnabled = Boolean(state.localScreenAudioTrack && state.localScreenAudioTrack.enabled);
   const hasRemoteAudio = hasScreen && source === "remote" && state.remoteScreenStream?.getAudioTracks().some((track) => track.readyState === "live");
 
-  ui.presentationHud.hidden = !hasScreen;
+  // Only the person actually sharing sees an expandable options menu.
+  // Keep it closed for viewers and whenever capture is stopped.
+  if (!isLocal) closePresenterOptions();
+  ui.presenterOptionsToggle && (ui.presenterOptionsToggle.hidden = !isLocal);
+  if (isLocal) ui.presenterOptionsToggle?.setAttribute("aria-label", "Open presentation options");
   document.body.classList.toggle("screen-share-mode", hasScreen);
   document.body.classList.toggle("local-presenting", isLocal);
 
@@ -3541,7 +3586,26 @@ function updatePresentationHud() {
   const audioActive = isLocal ? localAudioEnabled : hasRemoteAudio;
   ui.presentationAudioState.classList.toggle("on", audioActive);
   ui.presentationAudioState.classList.toggle("off", !audioActive);
-  ui.presentationAudioPill?.classList.toggle("disabled", isLocal && !hasLocalAudioTrack);
+  // Audio controls are meaningful only for the presenter when a capture
+  // actually contains an audio track. Remote viewers get a status indicator.
+  const canControlPresentationAudio = isLocal && hasLocalAudioTrack;
+  if (ui.presentationAudioPill) {
+    ui.presentationAudioPill.disabled = !canControlPresentationAudio;
+    ui.presentationAudioPill.classList.toggle("disabled", !canControlPresentationAudio);
+    ui.presentationAudioPill.setAttribute("aria-disabled", String(!canControlPresentationAudio));
+    ui.presentationAudioPill.setAttribute("aria-label", canControlPresentationAudio
+      ? `Turn presentation audio ${localAudioEnabled ? "off" : "on"}`
+      : hasRemoteAudio ? "Presenter is sharing audio" : "Presentation audio unavailable");
+  }
+  if (ui.screenFitBtn) ui.screenFitBtn.hidden = !isLocal;
+  if (!hasScreen && ui.screenTile?.classList.contains("screen-fill")) {
+    ui.screenTile.classList.remove("screen-fill");
+    ui.screenFitBtn?.setAttribute("aria-pressed", "false");
+    ui.screenFitBtn?.setAttribute("aria-label", "Fill presentation view, may crop edges");
+    ui.screenFitBtn?.setAttribute("title", "Fill stage (crop edges)");
+    const label = ui.screenFitBtn?.querySelector("span");
+    if (label) label.textContent = "Fill";
+  }
   ui.presentationAudioPill?.setAttribute("aria-pressed", String(audioActive));
   ui.presentationAudioPill?.setAttribute("title", isLocal ? (hasLocalAudioTrack ? "Turn presentation audio on/off" : "No presentation audio track available") : "Remote presentation audio");
   if (ui.stopPresentingBtn) ui.stopPresentingBtn.hidden = !isLocal;
@@ -3550,21 +3614,15 @@ function updatePresentationHud() {
 
 function updateScreenPreviewTiles() {
   if (!ui.videoGrid) return;
-  const source = ui.screenTile?.dataset?.source || "";
-  const previews = [];
-  const remoteTile = ui.videoGrid.querySelector('.remote-tile');
-  const localTile = ui.videoGrid.querySelector('.local-tile');
-  if (!ui.screenTile.hidden) {
-    if (source === 'local') {
-      if (localTile && !localTile.hidden) previews.push(localTile);
-      if (remoteTile && !remoteTile.hidden) previews.push(remoteTile);
-    } else if (source === 'remote') {
-      if (localTile && !localTile.hidden) previews.push(localTile);
-      if (remoteTile && !remoteTile.hidden) previews.push(remoteTile);
-    }
-  }
-  [remoteTile, localTile].forEach((tile) => tile && tile.removeAttribute('data-preview-index'));
-  previews.forEach((tile, index) => tile?.setAttribute('data-preview-index', String(index)));
+  // Keep all eligible participant previews visible during a presentation,
+  // including dynamically created mesh-peer tiles (not just the first remote).
+  const participants = [...ui.videoGrid.querySelectorAll('.video-tile:not(.screen-tile)')];
+  participants.forEach((tile) => tile.removeAttribute('data-preview-index'));
+  if (ui.screenTile?.hidden) return;
+  participants
+    .filter((tile) => !tile.hidden && !tile.classList.contains('layout-hidden'))
+    .sort((a, b) => Number(b.classList.contains('local-tile')) - Number(a.classList.contains('local-tile')))
+    .forEach((tile, index) => tile.setAttribute('data-preview-index', String(index)));
 }
 
 function openFeedbackModal() {
